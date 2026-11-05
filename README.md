@@ -1,0 +1,1 @@
+# worldbook-switch-manager
