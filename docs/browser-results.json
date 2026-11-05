@@ -1,0 +1,53 @@
+{
+  "environment": "Isolated mock host, Chromium; not live SillyTavern or physical Android",
+  "results": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "result": "PASS",
+      "checks": [
+        "UI scope and independent manual selection",
+        "three-turn cooldown with regeneration",
+        "unselected blue entry",
+        "manual/auto co-existence",
+        "clear -> all",
+        "no horizontal overflow",
+        "no browser exceptions"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "result": "PASS",
+      "checks": [
+        "UI scope and independent manual selection",
+        "three-turn cooldown with regeneration",
+        "unselected blue entry",
+        "manual/auto co-existence",
+        "clear -> all",
+        "no horizontal overflow",
+        "no browser exceptions"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 720
+      },
+      "result": "PASS",
+      "checks": [
+        "UI scope and independent manual selection",
+        "three-turn cooldown with regeneration",
+        "unselected blue entry",
+        "manual/auto co-existence",
+        "clear -> all",
+        "no horizontal overflow",
+        "no browser exceptions"
+      ]
+    }
+  ]
+}

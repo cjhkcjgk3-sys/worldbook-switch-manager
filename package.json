@@ -1,0 +1,16 @@
+{
+  "name": "sillytavern-worldbook-switch-manager",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/check.mjs",
+    "package": "python3 scripts/package.py",
+    "test:browser": "node scripts/browser-check.mjs"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "license": "MIT"
+}

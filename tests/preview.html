@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>世界书自动开关管理器 · 独立界面测试</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+:root { color-scheme: dark; --SmartThemeBodyColor: #e6e2dc; --SmartThemeBorderColor: #575653; --SmartThemeQuoteColor: #a7c7b0; }
+body { margin: 0; padding: 16px; background: #202321; font: 15px/1.5 system-ui, sans-serif; box-sizing: border-box; }
+main { max-width: 520px; margin: auto; }
+input, select, button { font: inherit; color: inherit; background: #303630; border: 1px solid #676e66; border-radius: 5px; padding: 8px; }
+input[type=checkbox] { accent-color: #a7c7b0; }
+.menu_button { cursor: pointer; }
+h1 { font-size: 18px; }
+</style>
+<main><h1>独立界面与回合测试</h1><p>这里使用模拟聊天，不连接模型和真实酒馆。</p><div id="extensions_settings2"></div></main>
+<script type="module">
+import { Manager } from '../controller.js';
+import { mountUI } from '../ui.js';
+class Events {
+    events = new Map();
+    on(n, f) { this.events.set(n, [...(this.events.get(n) ?? []), f]); }
+    removeListener(n, f) { this.events.set(n, (this.events.get(n) ?? []).filter(x => x !== f)); }
+    makeLast(n, f) { this.removeListener(n, f); this.on(n, f); }
+    async emit(n, ...args) { for (const f of this.events.get(n) ?? []) await f(...args); }
+}
+const names = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED'];
+const entries = [
+    { world: '原神综合世界书', uid: 1, comment: '雷电将军', key: ['雷电将军'], content: 'WSM_UNIQUE_RAIDEN_LORE', position: 0, disable: false },
+    { world: '原神综合世界书', uid: 2, comment: '提瓦特世界规则', key: [], content: 'WSM_WORLD_RULES', position: 0, constant: true, disable: false },
+    { world: '纯人物世界书', uid: 1, comment: '八重神子', key: ['八重神子'], content: 'WSM_UNIQUE_YAE_LORE', position: 0, disable: false },
+    { world: '纯人物世界书', uid: 2, comment: '原本禁用的人物', key: [], content: 'WSM_DISABLED', position: 0, disable: true },
+];
+const events = new Events();
+const ctx = { chat: [], chatMetadata: {}, extensionSettings: {}, characterId: 0, characters: [{ avatar: 'test.png' }], eventSource: events,
+    eventTypes: Object.fromEntries(names.map(n => [n, n])), getCurrentChatId: () => 'preview-chat', saveSettingsDebounced() {}, saveMetadata: async () => {}, loadWorldInfo: async () => ({ entries: {} }) };
+let ui;
+const manager = new Manager(() => ctx, { list: async () => ({ books: ['原神综合世界书', '纯人物世界书'], entries }), render: e => e.content }, () => ui?.render());
+manager.start(); ui = mountUI(manager, document.querySelector('#extensions_settings2'));
+window.harness = { manager, ctx, entries, events, async round({ regenerate = false } = {}) {
+    if (!regenerate) ctx.chat.push({ is_user: true, mes: '雷电将军、八重神子', send_date: ctx.chat.length });
+    await events.emit('GENERATION_STARTED', regenerate ? 'regenerate' : 'normal', {}, false);
+    const scan = { characterLore: structuredClone(entries), globalLore: [], personaLore: [], chatLore: [] };
+    await events.emit('WORLDINFO_ENTRIES_LOADED', scan);
+    const active = scan.characterLore.filter(e => !e.disable);
+    await events.emit('WORLD_INFO_ACTIVATED', active);
+    await events.emit('GENERATE_AFTER_DATA', { prompt: active.map(e => e.content).join('\n') }, false);
+    ctx.chat.push({ is_user: false, mes: '完整 AI 回复', send_date: ctx.chat.length });
+    await events.emit('MESSAGE_RECEIVED', ctx.chat.length - 1, regenerate ? 'regenerate' : 'normal');
+    await events.emit('GENERATION_ENDED');
+    return active.map(e => e.comment);
+} };
+</script>
+</html>
