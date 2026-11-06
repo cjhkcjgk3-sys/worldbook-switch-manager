@@ -59,6 +59,10 @@ export function mountUI(manager, target) {
     const manualKeys = new Set();
     const expanded = new Set();
     const bookNodes = new Map();
+    const limits = new Map();
+    let session = manager.sessionRevision;
+    let grouped = new Map();
+    let groupedSource;
     const list = el('div', undefined, 'wsm-books');
     const toolbar = el('div', undefined, 'wsm-actions');
     const manualActions = el('div', undefined, 'wsm-manual');
@@ -88,21 +92,30 @@ export function mountUI(manager, target) {
             manager.updateSettings({});
         }
     }
+    function batchSelection(selected) {
+        const groups = new Map();
+        for (const e of visibleEntries()) {
+            if (!groups.has(e.world)) groups.set(e.world, []);
+            groups.get(e.world).push(e);
+        }
+        for (const [world, entries] of groups) {
+            if (purpose.value === 'manual') {
+                for (const e of entries) { const key = entryKey(world, e.uid); selected ? manualKeys.add(key) : manualKeys.delete(key); }
+            } else {
+                const existing = manager.settings.selection[world];
+                // Preserve the future-entry semantics of a whole-book selection.
+                if (selected && existing === '*') continue;
+                const values = new Set(existing === '*' ? grouped.get(world).map(e => String(e.uid)) : existing ?? []);
+                for (const e of entries) selected ? values.add(String(e.uid)) : values.delete(String(e.uid));
+                if (values.size) manager.settings.selection[world] = [...values];
+                else delete manager.settings.selection[world];
+            }
+        }
+        if (purpose.value === 'scope') manager.updateSettings({}); else render();
+    }
     toolbar.append(
-        button('全选搜索结果', () => {
-            for (const e of visibleEntries()) {
-                if (purpose.value === 'manual') manualKeys.add(entryKey(e.world, e.uid));
-                else setEntrySelection(manager.settings, e.world, e.uid, true, manager.entries.filter(x => x.world === e.world).map(x => x.uid));
-            }
-            if (purpose.value === 'scope') manager.updateSettings({}); else render();
-        }),
-        button('取消选择搜索结果', () => {
-            for (const e of visibleEntries()) {
-                if (purpose.value === 'manual') manualKeys.delete(entryKey(e.world, e.uid));
-                else setEntrySelection(manager.settings, e.world, e.uid, false, manager.entries.filter(x => x.world === e.world).map(x => x.uid));
-            }
-            if (purpose.value === 'scope') manager.updateSettings({}); else render();
-        }),
+        button('全选搜索结果', () => batchSelection(true)),
+        button('取消选择搜索结果', () => batchSelection(false)),
         button('清空全部选择', () => {
             if (purpose.value === 'manual') { manualKeys.clear(); render(); }
             else manager.updateSettings({ selection: {} });
@@ -110,15 +123,28 @@ export function mountUI(manager, target) {
         button('刷新世界书', () => manager.refresh()),
     );
     body.append(enabled.wrap, automatic.wrap, rules, summary, notice, purpose, hint, search, toolbar, manualActions, list,
+        el('p', '冷却与手动冻结仅在当前会话有效；切换聊天、刷新页面或修改历史时重置。', 'wsm-help'),
         el('p', '状态显示下一次新回合；重新生成沿用原回合。解除手动冻结后，自动冷却仍可能生效。', 'wsm-help'));
     function render() {
         const focusToken = document.activeElement?.dataset.wsmFocus;
+        if (session !== manager.sessionRevision) {
+            manualKeys.clear(); expanded.clear(); limits.clear(); bookNodes.clear();
+            session = manager.sessionRevision;
+        }
+        if (groupedSource !== manager.entries) {
+            groupedSource = manager.entries;
+            grouped = new Map();
+            for (const e of manager.entries) {
+                if (!grouped.has(e.world)) grouped.set(e.world, []);
+                grouped.get(e.world).push(e);
+            }
+        }
         enabled.input.checked = manager.settings.enabled;
         automatic.input.checked = manager.settings.automatic;
         delay.input.value = manager.settings.delay;
         cooldown.input.value = manager.settings.cooldown;
         summary.textContent = `${manager.settings.enabled ? '管理已启用' : '管理已暂停'} · ${hasSelection(manager.settings) ? '精细管理：仅指定世界书或条目' : '全部管理：当前使用的所有条目'} · 已完成 ${manager.state.clock} 回合`;
-        notice.textContent = manager.error || manager.state.notice || manager.evidenceWarning || '';
+        notice.textContent = manager.error || manager.evidenceWarning || manager.state.notice || '';
         notice.hidden = !notice.textContent;
         hint.textContent = purpose.value === 'scope' ? '清空精细选择 = 恢复默认管理全部。整本选择会包含以后新增的条目。' : '此处选择只用于临时操作，不会改变自动管理范围。手动冻结从下一次新回合起计时。';
         manualActions.hidden = purpose.value !== 'manual';
@@ -127,14 +153,24 @@ export function mountUI(manager, target) {
         freezeButton.disabled = thawButton.disabled = !keys.length || !manager.context().getCurrentChatId() || Boolean(manager.pending);
         for (const [world, node] of bookNodes) if (node.open) expanded.add(world); else expanded.delete(world);
         bookNodes.clear(); list.replaceChildren();
-        const visible = visibleEntries();
+        const visible = new Map();
+        for (const e of visibleEntries()) {
+            if (!visible.has(e.world)) visible.set(e.world, []);
+            visible.get(e.world).push(e);
+        }
         for (const world of manager.bookNames) {
-            const entries = visible.filter(e => e.world === world);
-            const all = manager.entries.filter(e => e.world === world);
+            const entries = visible.get(world) ?? [];
+            const all = grouped.get(world) ?? [];
             if (!entries.length && search.value.trim()) continue;
             const book = el('details', undefined, 'wsm-book');
             book.open = expanded.has(world) || Boolean(search.value.trim());
             bookNodes.set(world, book);
+            book.addEventListener('toggle', () => {
+                if (!book.isConnected) return;
+                if (book.open === expanded.has(world)) return;
+                if (book.open) expanded.add(world); else expanded.delete(world);
+                render();
+            });
             const heading = el('summary', `${world} · ${all.length} 条`);
             book.append(heading);
             const entire = checkbox(purpose.value === 'scope' ? '整本管理（含新增条目）' : '选择本书全部条目',
@@ -150,7 +186,8 @@ export function mountUI(manager, target) {
             entire.input.dataset.wsmFocus = `book:${world}`;
             if (purpose.value === 'scope' && Array.isArray(manager.settings.selection[world])) entire.input.indeterminate = true;
             book.append(entire.wrap);
-            for (const e of entries) {
+            const limit = limits.get(world) ?? 100;
+            for (const e of (book.open ? entries.slice(0, limit) : [])) {
                 const row = el('div', undefined, 'wsm-entry');
                 const name = e.comment?.trim() || (e.key ?? []).join('、') || `未命名条目 #${e.uid}`;
                 const pick = checkbox(name, Boolean(isSelected(e)), selected => selectEntry(e, selected));
@@ -168,6 +205,7 @@ export function mountUI(manager, target) {
                 row.append(pick.wrap, el('span', reasons.join(' · '), 'wsm-entry-status'));
                 book.append(row);
             }
+            if (book.open && entries.length > limit) book.append(button(`显示更多（已显示 ${limit} / ${entries.length} 条）`, () => { limits.set(world, limit + 100); render(); }));
             if (!all.length) book.append(el('p', '这本世界书暂无条目。', 'wsm-help'));
             list.append(book);
         }
@@ -176,7 +214,7 @@ export function mountUI(manager, target) {
         if (focusToken) [...root.querySelectorAll('[data-wsm-focus]')].find(node => node.dataset.wsmFocus === focusToken)?.focus({ preventScroll: true });
     }
     purpose.addEventListener('change', render);
-    search.addEventListener('input', render);
+    search.addEventListener('input', () => { limits.clear(); render(); });
     target.append(root);
     render();
     return { render, destroy: () => root.remove() };

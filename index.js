@@ -1,3 +1,4 @@
+import { supportedVersion } from './core.js';
 import { Manager } from './controller.js';
 import { createAdapter } from './host-adapter.js';
 import { mountUI } from './ui.js';
@@ -41,8 +42,8 @@ async function initialize() {
         if (!response.ok) throw new Error('无法读取酒馆版本。');
         const version = await response.json();
         // Internal read-only module contracts are verified for this minor series.
-        if (!/^1\.19\.\d+(?:\+.*)?$/.test(version.pkgVersion ?? '')) {
-            throw new Error(`当前版本 ${version.pkgVersion ?? '未知'}；此安装包支持 SillyTavern 1.19.x 正式版。`);
+        if (!supportedVersion(version.pkgVersion)) {
+            throw new Error(`当前版本 ${version.pkgVersion ?? '未知'}；此安装包支持 SillyTavern 1.18.x / 1.19.x 正式版。`);
         }
         const [wi, regex, openai] = await Promise.all([
             import('/scripts/world-info.js'),

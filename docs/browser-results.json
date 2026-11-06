@@ -48,6 +48,31 @@
         "no horizontal overflow",
         "no browser exceptions"
       ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "result": "PASS",
+      "stress": {
+        "entries": 10000,
+        "books": 20,
+        "initialRenderedEntryRows": 0,
+        "expandedEntryRows": 200,
+        "manualFrozenEntries": 10000,
+        "repeatRenders": 200,
+        "initialRenderMs": 16,
+        "repeatRenderTotalMs": 2480,
+        "retainedHeapGrowthBytes": 57344
+      },
+      "checks": [
+        "lazy and paged rendering",
+        "bulk scope and manual selection across all entries",
+        "session switch clears manual state and picks",
+        "no horizontal overflow or browser exceptions",
+        "bounded retained heap after garbage collection"
+      ]
     }
   ]
 }

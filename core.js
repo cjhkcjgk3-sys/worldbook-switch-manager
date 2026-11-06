@@ -7,7 +7,7 @@ export function settingsWithDefaults(value = {}) {
     return { ...structuredClone(DEFAULTS), ...value, delay: integer(value.delay), cooldown: integer(value.cooldown ?? 1, 1), selection: Object.assign(Object.create(null), Object.fromEntries(Object.entries(value.selection ?? {}).filter(([, v]) => v === '*' || Array.isArray(v)).map(([k, v]) => [k, v === '*' ? v : v.map(String)]))) };
 }
 export function freshState(reason = '') {
-    return { version: 1, clock: 0, auto: {}, manual: {}, turns: {}, history: null, notice: reason };
+    return { clock: 0, auto: {}, manual: {}, lastTurn: null, notice: reason };
 }
 export function hasSelection(settings) {
     return Object.values(settings.selection).some(x => x === '*' || (Array.isArray(x) && x.length));
@@ -39,10 +39,13 @@ export function status(state, settings, world, uid, round = state.clock + 1) {
     return { delay, cooldown, manual, blocked: Boolean(settings.enabled && (cooldown || manual)), paused: !settings.enabled };
 }
 export function completeRound(state, settings, anchor, round, injected) {
-    const prior = state.turns[anchor];
+    const prior = state.lastTurn?.anchor === anchor;
     if (!prior) {
         state.clock = Math.max(state.clock, round);
-        state.turns[anchor] = { round };
+        state.lastTurn = { anchor, round };
+        // Keep the last completed round reproducible, then discard expired rules.
+        for (const [key, rule] of Object.entries(state.auto)) if (rule.round + rule.delay + rule.cooldown < round) delete state.auto[key];
+        for (const [key, rule] of Object.entries(state.manual)) if (rule.end < round) delete state.manual[key];
     }
     if (!settings.enabled || !settings.automatic) return;
     for (const { world, uid } of injected) {
@@ -61,25 +64,12 @@ export function freeze(state, keys, rounds) {
 export function unfreeze(state, keys) {
     for (const key of keys) delete state.manual[key];
 }
-/** Non-cryptographic identity only; never store raw message content in metadata. */
-export function digest(value) {
-    const text = typeof value === 'string' ? value : JSON.stringify(value);
-    let a = 2166136261, b = 5381;
-    for (let i = 0; i < text.length; i++) {
-        a = Math.imul(a ^ text.charCodeAt(i), 16777619);
-        b = Math.imul(b, 33) ^ text.charCodeAt(i);
-    }
-    return `${(a >>> 0).toString(16)}${(b >>> 0).toString(16)}`;
-}
 export function latestUser(chat) {
     for (let i = chat.length - 1; i >= 0; i--) {
         const m = chat[i];
-        if (m.is_user && !m.is_system) return { index: i, anchor: digest([i, m.send_date, m.mes]) };
+        if (m.is_user && !m.is_system) return { index: i, anchor: JSON.stringify([i, m.send_date]) };
     }
     return null;
-}
-export function historyDigest(chat) {
-    return digest(chat.map(m => [m.is_user, m.is_system, m.send_date, m.mes]));
 }
 export function promptText(value) {
     if (typeof value === 'string') return value;
@@ -89,4 +79,8 @@ export function promptText(value) {
         if ('content' in value) return promptText(value.content);
     }
     return '';
+}
+
+export function supportedVersion(version) {
+    return /^1\.(18|19)\.\d+(?:\+[0-9A-Za-z.-]+)?$/.test(version ?? '');
 }

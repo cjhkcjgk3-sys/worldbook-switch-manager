@@ -1,0 +1,67 @@
+{
+  "environment": "Official SillyTavern 1.18.0 / 51ad27fb86d39a3daca3adaa970375c9670c12df; isolated local instance; real native generation pipeline; synthetic model responses intercepted at HTTP request",
+  "version": "1.1.0",
+  "result": "PASS",
+  "requests": [
+    {
+      "raiden": true,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": false,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": false,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": true,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": false,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": false,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": true,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": true,
+      "rules": true,
+      "disabled": false
+    },
+    {
+      "raiden": true,
+      "rules": true,
+      "disabled": false
+    }
+  ],
+  "checks": [
+    "extension loaded through native activate hook",
+    "native budget/keyword processing",
+    "three-turn open/closed/open",
+    "regeneration stays closed, no double count",
+    "unselected constant rule preserved",
+    "original disabled entry stays disabled",
+    "worldbook JSON unchanged",
+    "no plugin chat metadata",
+    "manual and auto rules coexist; manual release restores eligibility",
+    "native message editor resets runtime state",
+    "native chat switch away and back resets progress",
+    "reload resets runtime state; global rule retained",
+    "no browser exceptions"
+  ]
+}

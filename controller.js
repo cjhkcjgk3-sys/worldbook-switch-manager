@@ -1,10 +1,10 @@
-import { ID, settingsWithDefaults, freshState, status, managed, completeRound, latestUser, historyDigest, entryKey, freeze, unfreeze, promptText } from './core.js';
+import { ID, settingsWithDefaults, freshState, status, managed, completeRound, latestUser, entryKey, freeze, unfreeze, promptText } from './core.js';
 
 const EVENTS = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED'];
 
 export function preflight(ctx, adapter) {
     const missing = EVENTS.filter(name => !ctx.eventTypes?.[name]);
-    for (const name of ['saveSettingsDebounced', 'saveMetadata', 'getCurrentChatId', 'loadWorldInfo']) {
+    for (const name of ['saveSettingsDebounced', 'getCurrentChatId', 'loadWorldInfo']) {
         if (typeof ctx[name] !== 'function') missing.push(name);
     }
     for (const name of ['on', 'removeListener', 'makeLast']) {
@@ -26,22 +26,20 @@ export class Manager {
         this.pending = null;
         this.revision = 0;
         this.error = '';
+        this.state = freshState();
+        this.sessionRevision = 0;
     }
     get settings() {
         const ctx = this.context();
         if (!ctx.extensionSettings[ID]) ctx.extensionSettings[ID] = settingsWithDefaults();
         return ctx.extensionSettings[ID];
     }
-    get state() {
-        const ctx = this.context();
-        if (!ctx.chatMetadata[ID] || ctx.chatMetadata[ID].version !== 1) ctx.chatMetadata[ID] = freshState();
-        return ctx.chatMetadata[ID];
-    }
     get chatIdentity() {
         const c = this.context();
         return JSON.stringify([c.groupId ?? null, c.groupId ? null : c.characters?.[c.characterId]?.avatar ?? null, c.getCurrentChatId()]);
     }
     start() {
+        if (this.listeners.length) return;
         const ctx = this.context();
         const missing = preflight(ctx, this.adapter);
         if (missing.length) throw new Error(`酒馆缺少所需能力：${missing.join('、')}`);
@@ -61,7 +59,7 @@ export class Manager {
             MESSAGE_DELETED: () => {
                 if (!this.pending || !['regenerate', 'continue'].includes(this.pending.type)) this.invalidate();
             },
-            MESSAGE_SWIPED: () => { this.save(); this.onChange(); },
+            MESSAGE_SWIPED: () => this.onChange(),
             WORLDINFO_SETTINGS_UPDATED: () => this.refresh(),
             WORLDINFO_UPDATED: () => this.refresh(),
             CHARACTER_EDITED: () => this.refresh(),
@@ -81,17 +79,8 @@ export class Manager {
         this.listeners = [];
         this.pending = null;
         this.revision++;
-    }
-    save(length) {
-        const ctx = this.context();
-        if (!ctx.getCurrentChatId()) return;
-        const count = length ?? (this.pending ? (latestUser(ctx.chat)?.index ?? ctx.chat.length - 1) + 1 : ctx.chat.length);
-        this.state.history = { length: count, digest: historyDigest(ctx.chat.slice(0, count)) };
-        // Native saveMetadata persists the chat-local metadata with the chat.
-        Promise.resolve(ctx.saveMetadata()).catch(() => {
-            this.error = '聊天进度保存失败，请检查酒馆连接后重试。';
-            this.onChange();
-        });
+        this.state = freshState();
+        this.sessionRevision++;
     }
     updateSettings(patch) {
         Object.assign(this.settings, patch);
@@ -100,8 +89,9 @@ export class Manager {
     }
     invalidate(reason = '历史消息已修改或删除，已清除本聊天的旧冷却与手动冻结。') {
         this.pending = null;
-        this.context().chatMetadata[ID] = freshState(reason);
-        this.save();
+        this.state = freshState(reason);
+        this.sessionRevision++;
+        this.evidenceWarning = '';
         this.onChange();
     }
     changeChat() {
@@ -110,26 +100,39 @@ export class Manager {
         this.evidenceWarning = '';
         this.entries = [];
         this.bookNames = [];
-        const state = this.state;
-        if (state.history && (typeof state.history !== 'object' || state.history.length > this.context().chat.length || state.history.digest !== historyDigest(this.context().chat.slice(0, state.history.length)))) {
-            this.invalidate('检测到历史回退、分支变化或未完成的生成，已清除旧进度，重新等待成功注入。');
-        }
+        this.state = freshState('已进入新聊天会话，冷却和手动冻结已重置；全局规则保留。');
+        this.sessionRevision++;
+        this.onChange();
         this.refresh();
     }
-    async refresh() {
-        const revision = ++this.revision;
+    refresh() {
         const chat = this.chatIdentity;
-        try {
-            const { entries, books } = await this.adapter.list(this.context());
-            if (revision !== this.revision || chat !== this.chatIdentity) return;
-            this.entries = entries;
-            this.bookNames = books;
-            this.onChange();
-        } catch {
-            if (revision !== this.revision) return;
-            this.error = '世界书读取失败，请检查连接后点击刷新。';
-            this.onChange();
+        if (this.refreshTask?.chat === chat && this.refreshTask.revision === this.revision) {
+            this.refreshTask.again = true;
+            return this.refreshTask.promise;
         }
+        const task = { chat, revision: ++this.revision, again: false };
+        this.refreshTask = task;
+        task.promise = (async () => {
+            // Merge same-tick notifications, then allow at most one trailing reload.
+            await Promise.resolve();
+            do {
+                task.again = false;
+                try {
+                    const { entries, books } = await this.adapter.list(this.context());
+                    if (task.revision !== this.revision || chat !== this.chatIdentity) return;
+                    this.error = '';
+                    this.entries = entries;
+                    this.bookNames = books;
+                    this.onChange();
+                } catch {
+                    if (task.revision !== this.revision || chat !== this.chatIdentity) return;
+                    this.error = '世界书读取失败，请检查连接后点击刷新。';
+                    this.onChange();
+                }
+            } while (task.again && task.revision === this.revision);
+        })().finally(() => { if (this.refreshTask === task) this.refreshTask = null; });
+        return task.promise;
     }
     begin(type = 'normal', dryRun = false) {
         // Dry runs and quiet/impersonation requests must never create cooldowns.
@@ -138,7 +141,6 @@ export class Manager {
             return;
         }
         this.pending = { type, chat: this.chatIdentity, anchor: null, round: null, activated: [], injected: [], received: false, ended: false };
-        if (['regenerate', 'swipe', 'continue'].includes(type)) this.save();
         this.onChange();
     }
     bindRound() {
@@ -148,7 +150,7 @@ export class Manager {
         if (!user) return null;
         p.anchor = user.anchor;
         p.userIndex = user.index;
-        p.round = this.state.turns[user.anchor]?.round ?? this.state.clock + 1;
+        p.round = this.state.lastTurn?.anchor === user.anchor ? this.state.lastTurn.round : this.state.clock + 1;
         return p;
     }
     filter(payload) {
@@ -165,7 +167,8 @@ export class Manager {
     activated(entries) {
         const p = this.bindRound();
         if (!p) return;
-        p.activated = entries.filter(e => !e.disable).map(e => ({ ...e, rendered: this.adapter.render(e) }));
+        if (!this.settings.enabled || !this.settings.automatic) { p.activated = []; return; }
+        p.activated = entries.filter(e => !e.disable && managed(this.settings, e.world, e.uid)).map(e => ({ world: e.world, uid: e.uid, position: e.position, rendered: this.adapter.render(e) }));
     }
     payload(data, dryRun, outgoing = false) {
         if (dryRun || !data) return;
@@ -206,19 +209,18 @@ export class Manager {
         const p = this.pending;
         if (!p || p.chat !== this.chatIdentity || !p.anchor) return;
         completeRound(this.state, this.settings, p.anchor, p.round, p.injected);
+        this.state.notice = "";
         this.pending = null;
-        this.save();
         this.onChange();
     }
     manualFreeze(keys, rounds) {
         if (!this.context().getCurrentChatId()) return;
         freeze(this.state, keys, rounds);
-        this.save();
+        this.state.notice = "";
         this.onChange();
     }
     manualUnfreeze(keys) {
         unfreeze(this.state, keys);
-        this.save();
         this.onChange();
     }
     entryStatus(e) { return status(this.state, this.settings, e.world, e.uid); }

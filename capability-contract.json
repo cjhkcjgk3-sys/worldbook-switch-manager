@@ -1,15 +1,59 @@
 {
   "schemaVersion": 1,
-  "minimum": { "sillytavern": "1.19.0", "tavernHelper": null },
-  "supported": "SillyTavern 1.19.x stable; source baseline 06bde939fb1e9c4c8d8641d810f0a916b5bce127",
+  "minimum": {
+    "sillytavern": "1.18.0",
+    "tavernHelper": null
+  },
+  "supported": "SillyTavern 1.18.x and 1.19.x stable; source baselines 51ad27fb86d39a3daca3adaa970375c9670c12df and 06bde939fb1e9c4c8d8641d810f0a916b5bce127",
   "requirements": [
-    { "id": "host-context", "owner": "sillytavern", "symbol": "SillyTavern.getContext", "required": true, "fallback": null },
-    { "id": "native-scan-filter", "owner": "sillytavern", "symbol": "eventTypes.WORLDINFO_ENTRIES_LOADED", "required": true, "fallback": null },
-    { "id": "native-activation", "owner": "sillytavern", "symbol": "eventTypes.WORLD_INFO_ACTIVATED", "required": true, "fallback": null },
-    { "id": "final-payload", "owner": "sillytavern", "symbol": "eventTypes.GENERATE_AFTER_DATA", "required": true, "fallback": null },
-    { "id": "metadata", "owner": "sillytavern", "symbol": "SillyTavern.getContext().saveMetadata", "required": true, "fallback": null },
-    { "id": "world-info-bindings", "owner": "sillytavern", "symbol": "/scripts/world-info.js", "required": true, "fallback": null },
-    { "id": "regex-engine", "owner": "sillytavern", "symbol": "/scripts/extensions/regex/engine.js:getRegexedString", "required": true, "fallback": null },
-    { "id": "prompt-provenance", "owner": "sillytavern", "symbol": "/scripts/openai.js:promptManager.messages", "required": true, "fallback": null }
+    {
+      "id": "host-context",
+      "owner": "sillytavern",
+      "symbol": "SillyTavern.getContext",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "native-scan-filter",
+      "owner": "sillytavern",
+      "symbol": "eventTypes.WORLDINFO_ENTRIES_LOADED",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "native-activation",
+      "owner": "sillytavern",
+      "symbol": "eventTypes.WORLD_INFO_ACTIVATED",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "final-payload",
+      "owner": "sillytavern",
+      "symbol": "eventTypes.GENERATE_AFTER_DATA",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "world-info-bindings",
+      "owner": "sillytavern",
+      "symbol": "/scripts/world-info.js",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "regex-engine",
+      "owner": "sillytavern",
+      "symbol": "/scripts/extensions/regex/engine.js:getRegexedString",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "prompt-provenance",
+      "owner": "sillytavern",
+      "symbol": "/scripts/openai.js:promptManager.messages",
+      "required": true,
+      "fallback": null
+    }
   ]
 }

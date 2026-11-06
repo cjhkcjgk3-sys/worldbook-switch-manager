@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 version = json.loads((root / 'manifest.json').read_text())['version']
 out = root.parent / f'worldbook-switch-manager-v{version}.zip'
 files = ['manifest.json', 'index.js', 'core.js', 'controller.js', 'host-adapter.js', 'ui.js', 'style.css',
-         'capability-contract.json', 'README.md', 'package.json', 'NEXT.md', '.gitignore', 'LICENSE']
+         'capability-contract.json', 'CHANGELOG.md', 'README.md', 'package.json', 'NEXT.md', '.gitignore', 'LICENSE']
 for folder in ['docs', 'tests', 'scripts']:
     files += [str(p.relative_to(root)) for p in (root / folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts]
 with ZipFile(out, 'w', ZIP_DEFLATED) as archive:

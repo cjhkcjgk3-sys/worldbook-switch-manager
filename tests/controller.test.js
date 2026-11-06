@@ -96,32 +96,42 @@ test('A13: regenerate and swipe keep the successful turn and freeze snapshot', a
     assert.equal(second.globalLore[0].disable, true);
     await h.success(); await h.emit('MESSAGE_SWIPED'); assert.equal(h.manager.state.clock, 2);
 });
-test('A15: chats carry independent metadata and share settings', async () => {
-    const h = setup(); h.user(); await h.prepare(); await h.success();
+test('switching away and back resets progress but retains the global rules', async () => {
+    const h = setup(); h.manager.updateSettings({ delay: 2 }); h.user(); await h.prepare(); await h.success();
+    h.manager.manualFreeze([entryKey('book', 1)], 3);
     const a = h.ctx;
     h.ctx = { ...a, chat: [], chatMetadata: {}, chatId: 'B' };
     await h.emit('CHAT_CHANGED');
     assert.equal(h.manager.state.clock, 0); assert.deepEqual(h.manager.state.auto, {});
-    h.user('B'); await h.prepare('normal', []); await h.success();
+    assert.deepEqual(h.manager.state.manual, {}); assert.equal(h.manager.settings.delay, 2);
+    h.user('B'); await h.prepare(); await h.success();
     h.ctx = a; await h.emit('CHAT_CHANGED');
-    assert.equal(h.manager.state.clock, 1); assert.ok(h.manager.state.auto[entryKey('book', 1)]);
+    assert.equal(h.manager.state.clock, 0); assert.deepEqual(h.manager.state.auto, {});
+    assert.equal(h.manager.settings.delay, 2);
 });
-test('refresh persists progress, and a failed new turn appended to history does not reset prior cycles', async () => {
-    const h = setup(); h.user(); await h.prepare(); await h.success();
-    const snapshot = structuredClone(h.manager.state);
-    h.user('failed'); await h.prepare(); await h.emit('GENERATION_ENDED');
-    await h.emit('CHAT_CHANGED');
+test('reloading starts fresh and never reads or writes old cooldown metadata', async () => {
+    const h = setup();
+    h.ctx.saveMetadata = () => { throw new Error('must not persist session progress'); };
+    h.ctx.chatMetadata[ID] = { version: 1, clock: 99, auto: { old: {} } };
+    const old = structuredClone(h.ctx.chatMetadata);
+    h.user(); await h.prepare(); await h.success();
+    h.manager.manualFreeze([entryKey('book', 1)], 5);
     assert.equal(h.manager.state.clock, 1);
-    assert.deepEqual(h.manager.state.auto, snapshot.auto);
+    h.manager.stop(); h.manager.start();
+    assert.equal(h.manager.state.clock, 0);
+    assert.deepEqual(h.manager.state.manual, {});
+    assert.deepEqual(h.ctx.chatMetadata, old);
 });
-test('history edit/deletion/branch rollback clear invalidated timers with a visible explanation', async () => {
-    const h = setup(); h.user(); await h.prepare(); await h.success();
-    const saved = structuredClone(h.manager.state);
-    h.ctx.chat[0].mes = 'rewritten offline'; await h.emit('CHAT_CHANGED');
-    assert.equal(h.manager.state.clock, 0); assert.match(h.manager.state.notice, /历史/);
-    h.ctx.chatMetadata[ID] = saved;
-    await h.emit('MESSAGE_EDITED', 1);
-    assert.deepEqual(h.manager.state.auto, {}); assert.match(h.manager.state.notice, /历史/);
+test('history events immediately clear the current session without hashing history', async () => {
+    const h = setup();
+    for (const name of ['MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED']) {
+        h.user(); await h.prepare(); await h.success();
+        h.manager.manualFreeze([entryKey('book', 1)], 5);
+        await h.emit(name, 0);
+        assert.equal(h.manager.state.clock, 0);
+        assert.deepEqual(h.manager.state.auto, {}); assert.deepEqual(h.manager.state.manual, {});
+        assert.match(h.manager.state.notice, /历史/);
+    }
 });
 test('missing capability blocks startup and stop removes every event subscription', () => {
     const h = setup();
@@ -133,7 +143,9 @@ test('async book loads from an old chat cannot overwrite the current list', asyn
     const h = setup();
     let release;
     h.manager.adapter.list = () => new Promise(resolve => { release = resolve; });
+    await Promise.resolve();
     const oldLoad = h.manager.refresh();
+    await Promise.resolve();
     h.ctx = { ...h.ctx, chatId: 'B', chatMetadata: {} };
     h.manager.adapter.list = async () => ({ books: ['B'], entries: [] });
     await h.manager.refresh();

@@ -1,0 +1,39 @@
+{
+  "environment": "Node v24.22.1; isolated deterministic event tests, no paid model calls",
+  "results": [
+    {
+      "name": "100000 rounds plus 100000 regenerations",
+      "result": "PASS",
+      "elapsedMs": 242,
+      "rounds": 100000,
+      "regenerations": 100000,
+      "retainedTurnRecords": 1,
+      "retainedManualRules": 1
+    },
+    {
+      "name": "5000 enable/disable cycles",
+      "result": "PASS",
+      "elapsedMs": 49,
+      "cycles": 5000,
+      "remainingListeners": 0,
+      "metadataUnchanged": true
+    },
+    {
+      "name": "10000 entries across 20 books, 200 scans",
+      "result": "PASS",
+      "elapsedMs": 982,
+      "entries": 10000,
+      "scans": 200,
+      "p50Ms": 4.57,
+      "p95Ms": 5.5,
+      "originalEntriesUnchanged": true
+    },
+    {
+      "name": "2000 concurrent refresh notifications",
+      "result": "PASS",
+      "elapsedMs": 13,
+      "notifications": 2000,
+      "actualLoads": 1
+    }
+  ]
+}
