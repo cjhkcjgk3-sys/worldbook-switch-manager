@@ -1,4 +1,6 @@
 .wsm { margin: .5rem 0; width: 100%; min-width: 0; color: var(--SmartThemeBodyColor, inherit); }
+.wsm-popup { width: 100%; min-width: 0; }
+.wsm-popup .wsm { margin: 0; }
 .wsm summary { cursor: pointer; padding: .65rem .35rem; overflow-wrap: anywhere; font-weight: 600; }
 .wsm-body { display: flex; flex-direction: column; gap: .65rem; padding: .5rem; }
 .wsm p { margin: 0; }

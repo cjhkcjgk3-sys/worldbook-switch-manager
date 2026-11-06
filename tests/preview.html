@@ -13,9 +13,10 @@ input[type=checkbox] { accent-color: #a7c7b0; }
 .menu_button { cursor: pointer; }
 h1 { font-size: 18px; }
 </style>
-<main><h1>独立界面与回合测试</h1><p>这里使用模拟聊天，不连接模型和真实酒馆。</p><div id="extensions_settings2"></div></main>
+<main><h1>独立界面与回合测试</h1><p>这里使用模拟聊天，不连接模型和真实酒馆。</p><div id="extensionsMenu" aria-label="模拟魔术棒菜单"></div><div id="extensions_settings2"></div></main>
 <script type="module">
 import { Manager } from '../controller.js';
+import { createLauncher } from '../launcher.js';
 import { mountUI } from '../ui.js';
 class Events {
     events = new Map();
@@ -37,7 +38,8 @@ const ctx = { chat: [], chatMetadata: {}, extensionSettings: {}, characterId: 0,
 let ui;
 const manager = new Manager(() => ctx, { list: async () => ({ books: ['原神综合世界书', '纯人物世界书'], entries }), render: e => e.content }, () => ui?.render());
 manager.start(); ui = mountUI(manager, document.querySelector('#extensions_settings2'));
-window.harness = { manager, ctx, entries, events, async round({ regenerate = false } = {}) {
+const launcher = createLauncher(document.querySelector('#extensionsMenu'), () => { window.harness.opened++; });
+window.harness = { manager, ctx, entries, events, launcher, opened: 0, async round({ regenerate = false } = {}) {
     if (!regenerate) ctx.chat.push({ is_user: true, mes: '雷电将军、八重神子', send_date: ctx.chat.length });
     await events.emit('GENERATION_STARTED', regenerate ? 'regenerate' : 'normal', {}, false);
     const scan = { characterLore: structuredClone(entries), globalLore: [], personaLore: [], chatLore: [] };

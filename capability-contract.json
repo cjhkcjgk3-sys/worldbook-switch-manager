@@ -54,6 +54,13 @@
       "symbol": "/scripts/openai.js:promptManager.messages",
       "required": true,
       "fallback": null
+    },
+    {
+      "id": "wand-menu-entry",
+      "owner": "sillytavern",
+      "symbol": "DOM #extensionsMenu + SillyTavern.getContext().Popup / POPUP_TYPE.TEXT",
+      "required": false,
+      "fallback": "extensions_settings2 panel entry"
     }
   ]
 }

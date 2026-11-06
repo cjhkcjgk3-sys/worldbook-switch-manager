@@ -8,6 +8,7 @@
       },
       "result": "PASS",
       "checks": [
+        "magic wand menu item: click, Enter/Space and destroy",
         "UI scope and independent manual selection",
         "three-turn cooldown with regeneration",
         "unselected blue entry",
@@ -24,6 +25,7 @@
       },
       "result": "PASS",
       "checks": [
+        "magic wand menu item: click, Enter/Space and destroy",
         "UI scope and independent manual selection",
         "three-turn cooldown with regeneration",
         "unselected blue entry",
@@ -40,6 +42,7 @@
       },
       "result": "PASS",
       "checks": [
+        "magic wand menu item: click, Enter/Space and destroy",
         "UI scope and independent manual selection",
         "three-turn cooldown with regeneration",
         "unselected blue entry",
@@ -62,9 +65,9 @@
         "expandedEntryRows": 200,
         "manualFrozenEntries": 10000,
         "repeatRenders": 200,
-        "initialRenderMs": 16,
-        "repeatRenderTotalMs": 2480,
-        "retainedHeapGrowthBytes": 57344
+        "initialRenderMs": 19,
+        "repeatRenderTotalMs": 3564,
+        "retainedHeapGrowthBytes": 73192
       },
       "checks": [
         "lazy and paged rendering",

@@ -1,6 +1,7 @@
 /** Run only against a disposable local SillyTavern test instance. Creates test data. */
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 const url=process.env.WSM_LIVE_URL;
 if(!url || !['127.0.0.1','localhost'].includes(new URL(url).hostname) || process.env.WSM_ISOLATED_TEST!=='1') throw new Error('Set WSM_LIVE_URL and WSM_ISOLATED_TEST=1 for a disposable localhost instance.');
 const {chromium}=await import(process.env.WSM_PLAYWRIGHT_MODULE||'playwright');
@@ -68,8 +69,8 @@ try {
     assert.equal(await page.evaluate(()=>Object.hasOwn(SillyTavern.getContext().chatMetadata,'worldbook_switch_manager')),false);
     assert.equal(await page.evaluate(async name=>{const ctx=SillyTavern.getContext();const response=await fetch('/api/worldinfo/get',{method:'POST',headers:ctx.getRequestHeaders(),body:JSON.stringify({name})});return JSON.stringify(await response.json());},baseline.world),baseline.serialized);
     console.log('Native three-turn request trace + regeneration: PASS');
-    await page.locator('#extensions-settings-button > .drawer-toggle').click();
-    await page.locator('.wsm > details > summary').click();
+    await page.locator('#extensionsMenuButton').click();
+    await page.locator('#worldbook_switch_manager_wand_button').click();
     await page.getByText(`${baseline.world} · 3 条`,{exact:true}).click();
     await page.getByRole('combobox',{name:'选择用途'}).selectOption('manual');
     await page.getByRole('checkbox',{name:'雷电将军',exact:true}).check();
@@ -81,9 +82,10 @@ try {
     assert.deepEqual(await turn(),{raiden:false,rules:true,disabled:false});
     await page.getByRole('button',{name:'解除所选手动冻结',exact:true}).click();
     assert.deepEqual(await turn(),{raiden:true,rules:true,disabled:false});
-    await page.screenshot({path:new URL('../docs/live-1.18-preview.png',import.meta.url).pathname,fullPage:true});
+    await page.screenshot({path:fileURLToPath(new URL('../docs/live-1.18-preview.png',import.meta.url)),fullPage:true});
+    await page.locator('.popup-button-ok').click();
+    await page.waitForFunction(()=>!document.querySelector('.popup'));
     // Use the native message editor; no synthetic edit event is emitted by this test.
-    await page.locator('#extensions-settings-button > .drawer-toggle').click();
     const last=page.locator('#chat .mes').last();
     await last.locator('.mes_edit').click({force:true});
     await last.locator('textarea.edit_textarea').fill('Edited synthetic reply.');
@@ -104,7 +106,7 @@ try {
     assert.equal(await page.evaluate(()=>SillyTavern.getContext().extensionSettings.worldbook_switch_manager.cooldown),1);
     assert.equal(await page.evaluate(()=>Object.hasOwn(SillyTavern.getContext().chatMetadata,'worldbook_switch_manager')),false);
     assert.deepEqual(errors,[]);
-    const result={environment:'Official SillyTavern 1.18.0 / 51ad27fb86d39a3daca3adaa970375c9670c12df; isolated local instance; real native generation pipeline; synthetic model responses intercepted at HTTP request',version:'1.1.0',result:'PASS',requests,checks:['extension loaded through native activate hook','native budget/keyword processing','three-turn open/closed/open','regeneration stays closed, no double count','unselected constant rule preserved','original disabled entry stays disabled','worldbook JSON unchanged','no plugin chat metadata','manual and auto rules coexist; manual release restores eligibility','native message editor resets runtime state','native chat switch away and back resets progress','reload resets runtime state; global rule retained','no browser exceptions']};
+    const result={environment:'Official SillyTavern 1.18.0 / 51ad27fb86d39a3daca3adaa970375c9670c12df; isolated local instance; real native generation pipeline; synthetic model responses intercepted at HTTP request',version:'1.2.0',result:'PASS',requests,checks:['extension loaded through native activate hook','magic wand menu entry opens the manager popup','native budget/keyword processing','three-turn open/closed/open','regeneration stays closed, no double count','unselected constant rule preserved','original disabled entry stays disabled','worldbook JSON unchanged','no plugin chat metadata','manual and auto rules coexist; manual release restores eligibility','native message editor resets runtime state','native chat switch away and back resets progress','reload resets runtime state; global rule retained','no browser exceptions']};
     await writeFile(new URL('../docs/live-1.18-results.json',import.meta.url),JSON.stringify(result,null,2)+'\n');
     console.log(JSON.stringify(result,null,2));
 } finally {await browser.close();}

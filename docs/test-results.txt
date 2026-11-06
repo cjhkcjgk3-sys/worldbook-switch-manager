@@ -1,36 +1,36 @@
 
-> sillytavern-worldbook-switch-manager@1.1.0 test
+> sillytavern-worldbook-switch-manager@1.2.0 test
 > node --test
 
-✔ A09/A18: primary, attached, global, chat and persona books, empty books, no unrelated loading (3.909692ms)
-✔ group books include enabled participating members only (0.352548ms)
-✔ render follows native regex prompt flags and native default depth (0.3125ms)
-✔ disabled prompt slot does not count even if the exact entry text is in chat history (0.322455ms)
-✔ ambiguous nonstandard insertion positions conservatively wait for verifiable evidence (0.312239ms)
-✔ worldbook filenames matching JavaScript object properties remain valid selections (0.436302ms)
-✔ evidence collection never re-evaluates regex macros that may write variables (0.398597ms)
-✔ native scan copies close, storage remains untouched; originally disabled entries stay disabled (4.603392ms)
-✔ A01/A02: keywords alone or a budget-rejected entry do not start cooldown (1.784336ms)
-✔ empty rendered content, omitted final payload and previews cannot start a cycle (0.525183ms)
-✔ A14: failed and cancelled requests neither count nor establish a cycle (2.101612ms)
-✔ stream success counts after end-then-receive; failed partial stream never counts (2.538825ms)
-✔ A13: regenerate and swipe keep the successful turn and freeze snapshot (1.421051ms)
-✔ switching away and back resets progress but retains the global rules (1.016206ms)
-✔ reloading starts fresh and never reads or writes old cooldown metadata (0.830391ms)
-✔ history events immediately clear the current session without hashing history (0.943859ms)
-✔ missing capability blocks startup and stop removes every event subscription (7.341753ms)
-✔ async book loads from an old chat cannot overwrite the current list (0.572222ms)
-✔ actual chat-completion request must retain the entry after final settings transformations (0.676025ms)
-✔ A11: delay 0 / cooldown 1, successful injection -> closed -> eligible, cycle repeats (7.341713ms)
-✔ A12: delay 2 / cooldown 2 is not reset by subsequent activations (0.843732ms)
-✔ A13: regeneration does not advance time or change eligibility for its logical round (0.215747ms)
-✔ A06–A08, A17: empty selection means all; persistent whole-book choice covers new entries (0.189079ms)
-✔ A16: auto and manual close independently; cancelling manual never clears auto (0.324788ms)
-✔ A19: master off releases every overlay and preserves rules (2.424658ms)
-✔ multiple books and same numeric UID never share a cycle (2.39254ms)
-✔ scope changes suspend only automatic rules, manual remains explicit (0.201036ms)
-✔ duration edits apply to future cycles and preserve already-established duration (0.32659ms)
-✔ supports verified 1.18 and 1.19 stable versions, rejects prereleases and unrelated versions (0.535789ms)
+✔ A09/A18: primary, attached, global, chat and persona books, empty books, no unrelated loading (2.477ms)
+✔ group books include enabled participating members only (0.3874ms)
+✔ render follows native regex prompt flags and native default depth (0.3233ms)
+✔ disabled prompt slot does not count even if the exact entry text is in chat history (0.367ms)
+✔ ambiguous nonstandard insertion positions conservatively wait for verifiable evidence (0.3522ms)
+✔ worldbook filenames matching JavaScript object properties remain valid selections (0.3761ms)
+✔ evidence collection never re-evaluates regex macros that may write variables (0.3893ms)
+✔ native scan copies close, storage remains untouched; originally disabled entries stay disabled (2.786ms)
+✔ A01/A02: keywords alone or a budget-rejected entry do not start cooldown (1.6692ms)
+✔ empty rendered content, omitted final payload and previews cannot start a cycle (0.7375ms)
+✔ A14: failed and cancelled requests neither count nor establish a cycle (2.3835ms)
+✔ stream success counts after end-then-receive; failed partial stream never counts (0.6577ms)
+✔ A13: regenerate and swipe keep the successful turn and freeze snapshot (0.6651ms)
+✔ switching away and back resets progress but retains the global rules (0.5624ms)
+✔ reloading starts fresh and never reads or writes old cooldown metadata (0.6132ms)
+✔ history events immediately clear the current session without hashing history (0.8043ms)
+✔ missing capability blocks startup and stop removes every event subscription (0.5337ms)
+✔ async book loads from an old chat cannot overwrite the current list (1.1709ms)
+✔ actual chat-completion request must retain the entry after final settings transformations (0.5928ms)
+✔ A11: delay 0 / cooldown 1, successful injection -> closed -> eligible, cycle repeats (3.043ms)
+✔ A12: delay 2 / cooldown 2 is not reset by subsequent activations (1.4637ms)
+✔ A13: regeneration does not advance time or change eligibility for its logical round (0.357ms)
+✔ A06–A08, A17: empty selection means all; persistent whole-book choice covers new entries (0.28ms)
+✔ A16: auto and manual close independently; cancelling manual never clears auto (0.3303ms)
+✔ A19: master off releases every overlay and preserves rules (0.2183ms)
+✔ multiple books and same numeric UID never share a cycle (0.4312ms)
+✔ scope changes suspend only automatic rules, manual remains explicit (0.3119ms)
+✔ duration edits apply to future cycles and preserve already-established duration (0.4545ms)
+✔ supports verified 1.18 and 1.19 stable versions, rejects prereleases and unrelated versions (0.584ms)
 ℹ tests 29
 ℹ suites 0
 ℹ pass 29
@@ -38,9 +38,9 @@
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 216.709621
+ℹ duration_ms 142.331
 
-> sillytavern-worldbook-switch-manager@1.1.0 check
+> sillytavern-worldbook-switch-manager@1.2.0 check
 > node scripts/check.mjs
 
 Manifest paths, lifecycle exports, JavaScript syntax and capability contract: PASS

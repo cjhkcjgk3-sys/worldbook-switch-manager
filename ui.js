@@ -31,11 +31,12 @@ function numberField(label, min, value, callback) {
     return { wrap, input };
 }
 
-export function mountUI(manager, target) {
+export function mountUI(manager, target, { open = false } = {}) {
     const root = el('section', undefined, 'wsm');
     root.id = 'worldbook-switch-manager';
     root.setAttribute('aria-label', '世界书自动开关管理器');
     const drawer = el('details');
+    drawer.open = open;
     const title = el('summary', '世界书自动开关管理器');
     drawer.append(title); root.append(drawer);
     const body = el('div', undefined, 'wsm-body'); drawer.append(body);
@@ -217,5 +218,5 @@ export function mountUI(manager, target) {
     search.addEventListener('input', () => { limits.clear(); render(); });
     target.append(root);
     render();
-    return { render, destroy: () => root.remove() };
+    return { render, destroy: () => root.remove(), root, drawer };
 }

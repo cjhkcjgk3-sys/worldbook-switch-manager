@@ -24,6 +24,16 @@ try {
         page.on('pageerror', e => errors.push(e.message));
         await page.goto(`http://127.0.0.1:${server.address().port}/tests/preview.html`);
         await page.waitForFunction(() => window.harness?.manager.bookNames.length === 2);
+        const wand = page.locator('#worldbook_switch_manager_wand_button');
+        assert.equal(await wand.count(), 1);
+        await wand.click();
+        assert.equal(await page.evaluate(() => window.harness.opened), 1);
+        await wand.focus();
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('Space');
+        assert.equal(await page.evaluate(() => window.harness.opened), 3);
+        await page.evaluate(() => window.harness.launcher.destroy());
+        assert.equal(await page.locator('#worldbook_switch_manager_wand_container').count(), 0);
         await page.locator('.wsm > details > summary').click();
         await page.getByText('原神综合世界书 · 2 条', { exact: true }).click();
         await page.getByRole('checkbox', { name: '雷电将军', exact: true }).check();
@@ -54,7 +64,7 @@ try {
         assert.deepEqual(errors, []);
         await mkdir(resolve(root, 'docs'), { recursive: true });
         if (viewport.width === 390) await page.screenshot({ path: resolve(root, 'docs/mobile-preview.png'), fullPage: true });
-        results.push({ viewport, result: 'PASS', checks: ['UI scope and independent manual selection', 'three-turn cooldown with regeneration', 'unselected blue entry', 'manual/auto co-existence', 'clear -> all', 'no horizontal overflow', 'no browser exceptions'] });
+        results.push({ viewport, result: 'PASS', checks: ['magic wand menu item: click, Enter/Space and destroy', 'UI scope and independent manual selection', 'three-turn cooldown with regeneration', 'unselected blue entry', 'manual/auto co-existence', 'clear -> all', 'no horizontal overflow', 'no browser exceptions'] });
         await page.close();
     }
     const page = await browser.newPage({viewport:{width:390,height:844}});

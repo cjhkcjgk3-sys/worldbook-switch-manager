@@ -1,12 +1,18 @@
+/**
+ * Entry point: mount the manager panel behind the main-page magic wand menu.
+ * Clicking the wand item opens the panel in a host popup; closing the popup
+ * returns the same panel instance to a hidden host so its transient UI state
+ * (search, expanded books, manual selection) survives between openings.
+ */
 import { supportedVersion } from './core.js';
 import { Manager } from './controller.js';
 import { createAdapter } from './host-adapter.js';
+import { createLauncher } from './launcher.js';
 import { mountUI } from './ui.js';
 
-let manager, ui;
+let manager, ui, popup, launcher, uiHost, failurePanel;
 let boot = 0;
 let readyListener;
-let failurePanel;
 
 export function activate() {
     // Synchronous load hook: attach only; asynchronous setup runs after APP_READY.
@@ -23,7 +29,13 @@ export function disable() {
     if (readyListener) ctx?.eventSource.removeListener(ctx.eventTypes.APP_READY, readyListener);
     readyListener = null;
     manager?.stop(); manager = undefined;
-    ui?.destroy(); ui = undefined;
+    const openPopup = popup; popup = undefined;
+    if (openPopup?.complete) {
+        try { Promise.resolve(openPopup.complete(ctx?.POPUP_RESULT?.NEGATIVE ?? 0)).catch(() => {}); } catch { /* popup already gone */ }
+    }
+    const view = ui; ui = undefined; view?.destroy();
+    launcher?.destroy(); launcher = undefined;
+    uiHost?.remove(); uiHost = undefined;
     failurePanel?.remove(); failurePanel = undefined;
 }
 function showFailure(message) {
@@ -33,6 +45,36 @@ function showFailure(message) {
     node.textContent = `世界书自动开关管理器未启动：${message}`;
     (document.querySelector('#extensions_settings2') ?? document.querySelector('#extensions_settings') ?? document.body).append(node);
     failurePanel = node;
+}
+function openPanel() {
+    if (!ui || popup) return;
+    const ctx = globalThis.SillyTavern?.getContext?.();
+    if (typeof ctx?.Popup !== 'function') return;
+    ui.drawer.open = true;
+    const content = document.createElement('div');
+    content.className = 'wsm-popup';
+    content.append(ui.root);
+    popup = new ctx.Popup(content, ctx.POPUP_TYPE.TEXT, '', {
+        okButton: '关闭',
+        wide: true,
+        allowVerticalScrolling: true,
+        leftAlign: true,
+        onClosing: () => {
+            popup = undefined;
+            if (uiHost && ui?.root) uiHost.append(ui.root);
+            return true;
+        },
+    });
+    const instance = popup;
+    // Let the host's document click handler close the wand dropdown before the
+    // modal opens; opening it synchronously keeps the menu floating behind it.
+    setTimeout(() => {
+        if (popup !== instance) return;
+        Promise.resolve(instance.show()).catch(() => {
+            if (popup === instance) popup = undefined;
+            if (uiHost && ui?.root) uiHost.append(ui.root);
+        });
+    }, 0);
 }
 async function initialize() {
     if (manager) return;
@@ -55,14 +97,30 @@ async function initialize() {
             throw new Error('原生世界书模块与支持版本不一致。');
         }
         const getContext = () => globalThis.SillyTavern.getContext();
-        const target = document.querySelector('#extensions_settings2') ?? document.querySelector('#extensions_settings');
-        if (!target) throw new Error('未找到扩展设置面板。');
         manager = new Manager(getContext, createAdapter(wi, regex, openai), () => ui?.render());
         manager.start();
-        ui = mountUI(manager, target);
+        const ctx = getContext();
+        const menu = document.querySelector('#extensionsMenu');
+        if (menu && typeof ctx.Popup === 'function' && typeof ctx.POPUP_TYPE?.TEXT === 'number') {
+            uiHost = document.createElement('div');
+            uiHost.id = 'worldbook_switch_manager_storage';
+            uiHost.hidden = true;
+            document.body.append(uiHost);
+            ui = mountUI(manager, uiHost, { open: false });
+            launcher = createLauncher(menu, openPanel);
+        } else {
+            // Hosts without the wand menu keep the previous settings-panel entry.
+            const target = document.querySelector('#extensions_settings2') ?? document.querySelector('#extensions_settings');
+            if (!target) throw new Error('未找到扩展设置面板。');
+            console.warn('世界书自动开关管理器：未找到魔术棒菜单，退回扩展设置面板。');
+            ui = mountUI(manager, target);
+        }
     } catch (error) {
         if (run !== boot) return;
         manager?.stop(); manager = undefined;
+        const view = ui; ui = undefined; view?.destroy();
+        launcher?.destroy(); launcher = undefined;
+        uiHost?.remove(); uiHost = undefined;
         showFailure(error.message);
     }
 }

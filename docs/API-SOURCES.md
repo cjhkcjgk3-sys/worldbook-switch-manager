@@ -26,6 +26,7 @@
 | `getRegexScripts/getRegexedString/regex_placement.WORLD_INFO` | `public/scripts/extensions/regex/engine.js` | 按原生正则提示词标志得到静态渲染结果；拒绝再次执行动态宏 | 源码已核对；静态正则与动态宏保护测试通过 |
 | `promptManager.messages.collection` | `public/scripts/openai.js`；`public/scripts/PromptManager.js:setChatCompletion` | 核对 `worldInfoBefore/worldInfoAfter` 槽位，排除纯历史同文 | 源码已核对；目标宿主待验 |
 | `hooks.activate/enable/disable/clean/delete` | `public/scripts/extensions.js:callExtensionHook` | 幂等注册、异步初始化、解绑监听与移除界面 | 源码已核对；入口静态检查通过 |
+| `#extensionsMenu` + `Popup` / `POPUP_TYPE.TEXT` | `public/scripts/extensions.js:initExtensions/addExtensionsButtonAndMenu`；`public/scripts/popup.js:Popup` | 在主页面魔术棒菜单添加入口，点击后用宿主弹窗承载管理器面板；关闭弹窗时把同一 DOM 实例移回隐藏宿主。宿主缺少菜单或弹窗 API 时退回 `#extensions_settings2` | 1.18/1.19 源码已核对；模拟页验证菜单项交互；官方 1.18.0 隔离实例验证弹窗入口、关闭回收与再次打开 |
 
 上述内部模块只读导入是本项目明确声明的版本依赖，不是跨版本稳定 API。冻结不依赖 Tavern Helper 写世界书接口，因为那会持久改写条目；也不使用私有 DOM 来推测生成结果。
 
