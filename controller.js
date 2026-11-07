@@ -168,7 +168,7 @@ export class Manager {
         const p = this.bindRound();
         if (!p) return;
         if (!this.settings.enabled || !this.settings.automatic) { p.activated = []; return; }
-        p.activated = entries.filter(e => !e.disable && managed(this.settings, e.world, e.uid)).map(e => ({ world: e.world, uid: e.uid, position: e.position, rendered: this.adapter.render(e) }));
+        p.activated = entries.filter(e => !e.disable && managed(this.settings, e.world, e.uid)).map(e => ({ world: e.world, uid: e.uid, position: e.position, rendered: this.adapter.render(e, this.context()) }));
     }
     payload(data, dryRun, outgoing = false) {
         if (dryRun || !data) return;

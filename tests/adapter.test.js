@@ -63,3 +63,35 @@ test('evidence collection never re-evaluates regex macros that may write variabl
     assert.equal(h.adapter.render({ position: 0, content: 'before-regex' }), '');
     assert.equal(h.calls.length, 0);
 });
+
+test('render safely expands basic macros like {{char}} and {{user}}', () => {
+    const h = setup();
+    h.ctx.characters = [{ name: 'Alice', avatar: 'a.png', data: { extensions: { world: 'primary' } } }];
+    h.ctx.characterId = 0;
+    h.ctx.name1 = 'Bob';
+
+    // Before regex substitution, {{char}} and {{user}} are safely expanded
+    const entry = { position: 4, content: '{{char}} and {{user}} before-regex' };
+    const rendered = h.adapter.render(entry, h.ctx);
+    assert.equal(rendered, 'Alice and Bob after-regex');
+});
+
+test('render extracts longest static chunk when unknown macros exist', () => {
+    const h = setup();
+    const entry = { position: 4, content: '{{getvar::faction}} a significant static chunk before-regex' };
+    const rendered = h.adapter.render(entry, h.ctx);
+    assert.equal(rendered, 'a significant static chunk after-regex');
+});
+
+test('list gracefully tolerates partial worldbook load failures', async () => {
+    const h = setup();
+    h.wi.selected_world_info = ['healthy_book', 'broken_book'];
+    h.ctx.loadWorldInfo = async name => {
+        if (name === 'broken_book') throw new Error('Disk read error');
+        return { entries: { 1: { uid: 1, comment: 'test' } } };
+    };
+    const result = await h.adapter.list(h.ctx);
+    assert.equal(result.books.includes('healthy_book'), true);
+    assert.equal(result.books.includes('broken_book'), false);
+    assert.equal(result.entries.length > 0, true);
+});

@@ -4,7 +4,7 @@
  * returns the same panel instance to a hidden host so its transient UI state
  * (search, expanded books, manual selection) survives between openings.
  */
-import { supportedVersion } from './core.js';
+import { supportedVersion, isCompatibleVersion } from './core.js';
 import { Manager } from './controller.js';
 import { createAdapter } from './host-adapter.js';
 import { createLauncher } from './launcher.js';
@@ -85,7 +85,10 @@ async function initialize() {
         const version = await response.json();
         // Internal read-only module contracts are verified for this minor series.
         if (!supportedVersion(version.pkgVersion)) {
-            throw new Error(`当前版本 ${version.pkgVersion ?? '未知'}；此安装包支持 SillyTavern 1.18.x / 1.19.x 正式版。`);
+            if (!isCompatibleVersion(version.pkgVersion)) {
+                throw new Error(`当前版本 ${version.pkgVersion ?? '未知'} 过低；此扩展需要 SillyTavern 1.18.0 或更高版本。`);
+            }
+            console.warn(`世界书自动开关管理器：当前酒馆版本 (${version.pkgVersion}) 未在 1.18/1.19 正式版核对列表中，将尝试通过能力契约检查进行兼容运行。`);
         }
         const [wi, regex, openai] = await Promise.all([
             import('/scripts/world-info.js'),

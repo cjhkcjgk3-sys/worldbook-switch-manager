@@ -4,7 +4,7 @@
     {
       "name": "100000 rounds plus 100000 regenerations",
       "result": "PASS",
-      "elapsedMs": 272,
+      "elapsedMs": 250,
       "rounds": 100000,
       "regenerations": 100000,
       "retainedTurnRecords": 1,
@@ -13,7 +13,7 @@
     {
       "name": "5000 enable/disable cycles",
       "result": "PASS",
-      "elapsedMs": 73,
+      "elapsedMs": 130,
       "cycles": 5000,
       "remainingListeners": 0,
       "metadataUnchanged": true
@@ -21,17 +21,17 @@
     {
       "name": "10000 entries across 20 books, 200 scans",
       "result": "PASS",
-      "elapsedMs": 1408,
+      "elapsedMs": 1675,
       "entries": 10000,
       "scans": 200,
-      "p50Ms": 5.97,
-      "p95Ms": 12.34,
+      "p50Ms": 6.67,
+      "p95Ms": 16.71,
       "originalEntriesUnchanged": true
     },
     {
       "name": "2000 concurrent refresh notifications",
       "result": "PASS",
-      "elapsedMs": 31,
+      "elapsedMs": 26,
       "notifications": 2000,
       "actualLoads": 1
     }

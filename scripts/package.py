@@ -5,15 +5,15 @@ import hashlib
 import json
 
 root = Path(__file__).resolve().parents[1]
-version = json.loads((root / 'manifest.json').read_text())['version']
+version = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))['version']
 out = root.parent / f'worldbook-switch-manager-v{version}.zip'
-files = ['manifest.json', 'index.js', 'core.js', 'controller.js', 'host-adapter.js', 'ui.js', 'style.css',
+files = ['manifest.json', 'index.js', 'core.js', 'controller.js', 'host-adapter.js', 'launcher.js', 'ui.js', 'style.css',
          'capability-contract.json', 'CHANGELOG.md', 'README.md', 'package.json', 'NEXT.md', '.gitignore', 'LICENSE']
 for folder in ['docs', 'tests', 'scripts']:
-    files += [str(p.relative_to(root)) for p in (root / folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts]
+    files += [str(p.relative_to(root)) for p in (root / folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and not p.name.endswith('.zip')]
 with ZipFile(out, 'w', ZIP_DEFLATED) as archive:
-    for name in sorted(files):
+    for name in sorted(set(files)):
         archive.write(root / name, f'worldbook-switch-manager/{name}')
 checksum = hashlib.sha256(out.read_bytes()).hexdigest()
-out.with_suffix('.zip.sha256').write_text(f'{checksum}  {out.name}\n')
+out.with_suffix('.zip.sha256').write_text(f'{checksum}  {out.name}\n', encoding='utf-8')
 print(f'{out}\nSHA256 {checksum}')

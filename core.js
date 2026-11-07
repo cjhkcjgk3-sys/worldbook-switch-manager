@@ -84,3 +84,12 @@ export function promptText(value) {
 export function supportedVersion(version) {
     return /^1\.(18|19)\.\d+(?:\+[0-9A-Za-z.-]+)?$/.test(version ?? '');
 }
+
+export function isCompatibleVersion(version) {
+    if (!version || typeof version !== 'string') return false;
+    const match = version.match(/^(\d+)\.(\d+)(?:\.(\d+))?(?:[+-].*)?$/);
+    if (!match) return false;
+    const major = Number(match[1]);
+    const minor = Number(match[2]);
+    return major > 1 || (major === 1 && minor >= 18);
+}

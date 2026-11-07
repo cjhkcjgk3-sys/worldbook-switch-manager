@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshState, settingsWithDefaults, completeRound, status, entryKey, managed, setEntrySelection, freeze, unfreeze, supportedVersion } from '../core.js';
+import { freshState, settingsWithDefaults, completeRound, status, entryKey, managed, setEntrySelection, freeze, unfreeze, supportedVersion, isCompatibleVersion } from '../core.js';
 const entry = { world: '人物', uid: 1 };
 const key = entryKey(entry.world, entry.uid);
 function complete(s, cfg, round, entries = []) { completeRound(s, cfg, `user-${round}`, round, entries); }
@@ -86,4 +86,13 @@ test('duration edits apply to future cycles and preserve already-established dur
 test('supports verified 1.18 and 1.19 stable versions, rejects prereleases and unrelated versions', () => {
     for (const v of ['1.18.0','1.18.1','1.19.0','1.18.2+test']) assert.equal(supportedVersion(v), true, v);
     for (const v of ['1.17.9','1.20.0','1.18.0-beta.1','2.18.0', null]) assert.equal(supportedVersion(v), false, v);
+});
+
+test('isCompatibleVersion accepts 1.18+ and prereleases, rejects <1.18', () => {
+    for (const v of ['1.18.0', '1.18.1', '1.19.0', '1.20.0', '2.0.0', '1.18.0-beta.1', '1.19.0-rc1']) {
+        assert.equal(isCompatibleVersion(v), true, v);
+    }
+    for (const v of ['1.17.9', '0.9.0', 'invalid', null, undefined, '']) {
+        assert.equal(isCompatibleVersion(v), false, String(v));
+    }
 });
