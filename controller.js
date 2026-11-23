@@ -1,4 +1,4 @@
-import { ID, settingsWithDefaults, status, managed, entryKey, promptText, integer, normalizeSelection } from './core.js';
+import { ID, settingsWithDefaults, status, managed, selectGreenCapVictims, entryKey, promptText, integer, normalizeSelection } from './core.js';
 import { DRAFT, derive, nextRound, draftFor, applyDraft, buildStart, readStart, readDelta, writeStart, writeDelta, writeWsm, writeDeltaToSwipes, removeDelta, clearInherited, stripAll, findAnchor, isReply } from './timeline.js';
 
 const EVENTS = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED'];
@@ -42,6 +42,7 @@ export class Manager {
         this.notice = '';
         this.sessionRevision = 0;
         this.viewCache = null;
+        this.lastCapSkipped = 0;
     }
     get settings() {
         const ctx = this.context();
@@ -97,11 +98,13 @@ export class Manager {
         this.revision++;
         this.sessionRevision++;
         this.viewCache = null;
+        this.lastCapSkipped = 0;
     }
     touch() { this.viewCache = null; this.onChange(); }
     updateSettings(patch) {
         if (patch && Object.hasOwn(patch, 'selection')) patch = { ...patch, selection: normalizeSelection(patch.selection) };
         Object.assign(this.settings, patch);
+        if (!this.settings.capEnabled) this.lastCapSkipped = 0;
         this.context().saveSettingsDebounced();
         this.touch();
     }
@@ -113,6 +116,7 @@ export class Manager {
         this.entries = [];
         this.bookNames = [];
         this.sessionRevision++;
+        this.lastCapSkipped = 0;
         this.touch();
         this.refresh();
     }
@@ -233,11 +237,35 @@ export class Manager {
         const tracked = p?.anchor ? p : null;
         const state = tracked ? tracked.filterState : this.view.state;
         const round = tracked ? tracked.round : this.view.round;
+        const allEntries = [];
         for (const entries of Object.values(payload)) {
             if (!Array.isArray(entries)) continue;
             for (const e of entries) {
                 if (status(state, this.settings, e.world, e.uid, round, Boolean(e.constant)).blocked) e.disable = true;
+                allEntries.push(e);
             }
+        }
+        const isMainScan = Boolean(tracked && tracked.nested === 0);
+        if (this.settings.capEnabled) {
+            let chat = this.context().chat;
+            if (isMainScan && Array.isArray(chat) && chat.length) {
+                if (tracked.type === 'swipe' && tracked.target) {
+                    const idx = chat.indexOf(tracked.target);
+                    if (idx >= 0) chat = chat.slice(0, idx);
+                } else if (tracked.type === 'regenerate') {
+                    const anchorIdx = chat.indexOf(tracked.anchor);
+                    if (anchorIdx >= 0 && anchorIdx < chat.length - 1) {
+                        let tail = chat.length - 1;
+                        while (tail > anchorIdx && chat[tail]?.is_system) tail--;
+                        if (tail > anchorIdx && !chat[tail]?.is_user) chat = chat.slice(0, tail);
+                    }
+                }
+            }
+            const victims = selectGreenCapVictims(allEntries, chat, this.settings, this.adapter.scanOptions?.() ?? {});
+            for (const v of victims) v.disable = true;
+            if (isMainScan) this.lastCapSkipped = new Set(victims.map(v => entryKey(v.world, v.uid))).size;
+        } else if (isMainScan) {
+            this.lastCapSkipped = 0;
         }
     }
     activated(entries) {
@@ -384,6 +412,7 @@ export class Manager {
         const chat = this.chatIdentity;
         const removed = stripAll(ctx.chat, ctx.chatMetadata);
         this.pending = null;
+        this.lastCapSkipped = 0;
         this.touch();
         let saved = null;
         try {

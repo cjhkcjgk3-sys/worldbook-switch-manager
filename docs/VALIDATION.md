@@ -1,3 +1,22 @@
+# 验证记录 · 1.3.1
+
+日期：2026-11-23。范围：将 2026-11-22 本地「单回合绿灯触发上限」改进与 1.3.0 时间线持久化架构（`feat/v1.3.0-timeline`）深度融合并升级为 `1.3.1`（当前仍在本地分支 `feat/v1.3.1-timeline-greencap`）。
+
+## 已运行（1.3.1 本地验证）
+
+| 检查 | 结果 | 范围与证据 |
+| --- | --- | --- |
+| `npm test` | 85/85 通过 | 原 76 项时间线/规则/复核测试 + 9 项新增（`protectConstant -> includeConstant` 迁移、绿灯上限优先级/去重/正则/`selectiveLogic`/`scanDepth===0`/长聊天尾部扫描、`scanOptions`、时间线+绿灯上限错峰/回退/分支、`swipe`/`regenerate`/`continue`/`aiTurns`、`dryRun`/嵌套 `quiet` 不覆写 `lastCapSkipped`、`MESSAGE_UPDATED` 共存），见 `test-results.txt` |
+| `npm run check` | 通过 | `manifest.json` / `package.json` / `core.js` 版本均为 `1.3.1`、钩子导出、JS 语法、能力合同 |
+| `npm run test:stress` | 6/6 通过 | 新增 40,001 楼层 + 10,000 有关键词绿灯条目开启上限（上限 5 条）50 次扫描：p50 11.51ms / p95 22.4ms；其余 5 项全通过，见 `stress-results.json` |
+| `npm run test:browser`（模拟宿主 + Chrome） | 5/5 通过 | `1280×1000`、`390×844`、`320×568`、`740×360` 四种视口（0 横向溢出、0 报错、版本 `1.3.1`、「单回合绿灯上限（条）」可见可改、联动状态栏）及 1 万条目堆内存压力（65,392 B），见 `browser-results.json`、`mobile-preview.png` |
+
+## 未验证（1.3.1）
+
+1.3.1 新增的绿灯上限与界面改动尚未在官方 SillyTavern 1.19.0 隔离实例重跑端到端脚本（`tests/e2e/`）；尚未在用户自己的酒馆、真实模型后端、Text Completion 后端与 SillyDroid 安卓实机验证；MVU、记忆类插件共存未测。下方保留 1.3.0 与 1.2.0 历史基线供对照。
+
+---
+
 # 验证记录 · 1.3.0
 
 日期：2026-11-23。环境：官方 SillyTavern 1.19.0（`06bde93`）独立克隆、独立数据目录与端口；本地模拟 OpenAI 兼容服务（流式/非流式/工具调用/失败/慢速）；无头 Chrome 驱动真实前端；酒馆助手（JS-Slash-Runner 4.12.2）同时加载。没有接触用户自己的酒馆，没有调用付费模型。

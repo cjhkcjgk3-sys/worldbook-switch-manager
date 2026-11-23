@@ -8,6 +8,7 @@
 .wsm-check input { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; margin: 0; }
 .wsm-check span { min-width: 0; overflow-wrap: anywhere; }
 .wsm-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.wsm-cap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 11rem); gap: .5rem .75rem; align-items: center; }
 .wsm-number { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
 .wsm .text_pole { width: 100%; margin: 0; min-height: 42px; box-sizing: border-box; }
 .wsm-scope { border-left: 3px solid var(--SmartThemeQuoteColor, #96b5b1); padding: .5rem .65rem; }
@@ -23,6 +24,7 @@
 .wsm :focus-visible { outline: 2px solid var(--SmartThemeQuoteColor, #96b5b1); outline-offset: 3px; }
 @media (max-width: 480px) {
     .wsm-rules { grid-template-columns: minmax(0, 1fr); }
+    .wsm-cap { grid-template-columns: minmax(0, 1fr); }
     .wsm-actions .menu_button, .wsm-manual .menu_button { flex: 1 1 45%; }
     .wsm-manual .wsm-number { flex-basis: 100%; }
     .wsm-body { padding: .25rem; }

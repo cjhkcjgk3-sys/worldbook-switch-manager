@@ -9,6 +9,7 @@
       "result": "PASS",
       "checks": [
         "magic wand menu item: click, Enter/Space and destroy",
+        "version 1.3.1 & green-cap controls",
         "UI scope and independent manual selection",
         "three-turn cooldown with regeneration",
         "unselected blue entry",
@@ -26,6 +27,7 @@
       "result": "PASS",
       "checks": [
         "magic wand menu item: click, Enter/Space and destroy",
+        "version 1.3.1 & green-cap controls",
         "UI scope and independent manual selection",
         "three-turn cooldown with regeneration",
         "unselected blue entry",
@@ -38,11 +40,30 @@
     {
       "viewport": {
         "width": 320,
-        "height": 720
+        "height": 568
       },
       "result": "PASS",
       "checks": [
         "magic wand menu item: click, Enter/Space and destroy",
+        "version 1.3.1 & green-cap controls",
+        "UI scope and independent manual selection",
+        "three-turn cooldown with regeneration",
+        "unselected blue entry",
+        "manual/auto co-existence",
+        "clear -> all",
+        "no horizontal overflow",
+        "no browser exceptions"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 740,
+        "height": 360
+      },
+      "result": "PASS",
+      "checks": [
+        "magic wand menu item: click, Enter/Space and destroy",
+        "version 1.3.1 & green-cap controls",
         "UI scope and independent manual selection",
         "three-turn cooldown with regeneration",
         "unselected blue entry",
@@ -65,9 +86,9 @@
         "expandedEntryRows": 200,
         "manualFrozenEntries": 10000,
         "repeatRenders": 200,
-        "initialRenderMs": 14,
-        "repeatRenderTotalMs": 1551,
-        "retainedHeapGrowthBytes": 44072
+        "initialRenderMs": 28,
+        "repeatRenderTotalMs": 1924,
+        "retainedHeapGrowthBytes": 65392
       },
       "checks": [
         "lazy and paged rendering",

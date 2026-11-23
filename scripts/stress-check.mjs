@@ -67,6 +67,24 @@ longTimes.sort((a,b)=>a-b);
 record('40000-message chat, 10000 entries, 50 scans',start,{messages:40001,entries:10000,scans:50,p50Ms:+longTimes[25].toFixed(2),p95Ms:+longTimes[47].toFixed(2)});
 record('10000 entries across 20 books, 200 scans',start,{entries:10000,scans:200,p50Ms:+times[100].toFixed(2),p95Ms:+times[190].toFixed(2),originalEntriesUnchanged:true});
 
+// 40,000-message chat + 10,000 keyed green entries with green cap enabled
+const capEntries=Array.from({length:10000},(_,i)=>({world:`book-${Math.floor(i/500)}`,uid:i%500,disable:false,constant:false,key:[`kw_${i%40}`],content:`entry-${i}`}));
+ctx.chat[ctx.chat.length-1].mes='kw_0 kw_1 kw_2 kw_3 kw_4 kw_5 kw_6 kw_7';
+manager.updateSettings({selection:{},capEnabled:true,capLimit:5});
+const capTimes=[];
+const capStart=performance.now();
+for(let i=0;i<50;i++){
+    ctx.chat.push({is_user:true,mes:'kw_0 kw_1 kw_2 kw_3 kw_4 kw_5 kw_6 kw_7',extra:{}});
+    manager.touch();
+    const payload={globalLore:capEntries.map(e=>({...e}))};
+    const t=performance.now();manager.filter(payload);capTimes.push(performance.now()-t);
+    ctx.chat.pop();
+    assert.equal(payload.globalLore.filter(e=>!e.disable).length,8005); // 2000 matching reduced to 5 + 8000 non-matching
+}
+capTimes.sort((a,b)=>a-b);
+record('40000-message chat, 10000 keyed entries, green cap (limit 5), 50 scans',capStart,{messages:40001,entries:10000,capLimit:5,scans:50,p50Ms:+capTimes[25].toFixed(2),p95Ms:+capTimes[47].toFixed(2)});
+manager.updateSettings({capEnabled:false});
+
 start=performance.now();let loads=0;
 manager.adapter.list=async()=>{loads++;await new Promise(r=>setTimeout(r,10));return {books:['latest'],entries:[]};};
 await Promise.all(Array.from({length:2000},()=>manager.refresh()));

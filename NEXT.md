@@ -1,17 +1,20 @@
 # 唯一续接记录
 
-当前目标：1.3.0 时间线模型（分支 `feat/v1.3.0-timeline`，待用户审 PR 后合并）。
+当前目标：1.3.1 深度融合完成（分支 `feat/v1.3.1-timeline-greencap`，基于 `origin/feat/v1.3.0-timeline` 融合 2026-11-22 本地未提交改动；原本地草稿已备份于本地分支 `backup/local-v1.3.0-20261122`，均暂未推送远端）。
 
-版本：1.3.0。冷却/手动冻结不再放在页面内存，而是写在聊天楼层上：用户消息（锚点）`extra.wsm.s` 存回合开始时的状态快照，AI 回复及其当前备选的 `extra.wsm.d` 存那次请求实际注入的条目；手动冻结先存为 `chatMetadata.wsm_draft`（绑定当时最后一个快照 id），下一次回复完成时并入快照。状态 = 最后一个有快照的锚点 + 其后匹配的回复记录 + 之后的锚点计数。没有任何“修改历史就重置”的逻辑。
+版本：1.3.1。保留 1.3.0 聊天楼层时间线持久化架构（锚点 `extra.wsm.s`、回复/备选 `extra.wsm.d`、草稿 `chatMetadata.wsm_draft`、单一蓝灯开关 `includeConstant` 并自动兼容迁移旧 `protectConstant`），新增可设置的「启用单回合绿灯触发上限（用户提及优先）」（默认关）与常驻可调数字框「单回合绿灯上限（条）」（默认 5）。`selectGreenCapVictims` 采用聊天尾部逆向截取最多 `maxDepth` 条非系统消息，按「最新用户消息 > 较早用户消息 > 仅模型回复」优先级保留前 N 条并按 `(world, uid)` 去重，支持 `scanDepth === 0` 跳过；`controller.filter` 对 `swipe`/`regenerate` 精准排除旧回复（不误伤 `continue` 与 `aiTurns` 锚点），且仅主生成扫描更新 `lastCapSkipped`。
 
-关键时序（1.19.0 实测，见 docs/VALIDATION.md）：流式 ENDED 在 MESSAGE_RECEIVED 之前，非流式相反；每次生成后有一次 dryRun 的 GENERATION_STARTED；工具调用后续请求以 GENERATION_STARTED('normal') 开始；swipe 在 GENERATION_STARTED 前已复制 extra；MESSAGE_RECEIVED 后酒馆自动保存聊天。
+关键时序（1.19.0 实测，见 docs/VALIDATION.md）：流式 ENDED 在 MESSAGE_RECEIVED 之前，非流式相反；每次生成后有一次 dryRun 的 GENERATION_STARTED；工具调用后续请求以 GENERATION_STARTED('normal') 开始；swipe 在 GENERATION_STARTED 前已复制 extra；regenerate 在 STARTED 后、WORLDINFO_ENTRIES_LOADED 前删除旧回复；MESSAGE_RECEIVED 后酒馆自动保存聊天。
 
-兼容：以 1.19.0（06bde939fb1e9c4c8d8641d810f0a916b5bce127）为准；1.18.x 能加载，未重测。
+兼容：以 1.19.0（06bde939fb1e9c4c8d8641d810f0a916b5bce127）为准；1.18.x 能加载，1.3.x 未完整重测。
 
-已验证：npm test 76/76；npm run check；模拟页三种尺寸；长聊天/1 万条目压力；官方 1.19.0 隔离实例 52/52 端到端（含酒馆助手 4.12.2 同时加载）；外部审核复核 `tests/e2e/review.mjs` 21/21；1.18.0/1.19.0 基础循环（含强制预览扫描）。
+已验证（1.3.1 本轮）：
+- `npm test`：85/85 通过（含迁移、绿灯上限优先级/逻辑/`scanDepth===0`/尾部扫描、时间线回退/分支/重摇/静默与预览防覆盖/`MESSAGE_UPDATED` 共存回归）。
+- `npm run check`：通过（manifest/package/core 版本 `1.3.1`、钩子、语法、能力合同）。
+- `npm run test:stress`：6 项全通过，含 4 万楼层 + 1 万有关键词绿灯条目开启上限（上限 5 条）50 次扫描（p50 11.51ms / p95 22.4ms）。
+- `npm run test:browser`（Playwright + 本机 Chrome 驱动 `tests/preview.html` 模拟宿主）：1280×1000、390×844、320×568、740×360 四种视口及 1 万条目滚动/堆内存压力全通过（0 横向溢出，0 报错，核对版本 `1.3.1` 及「单回合绿灯上限（条）」控件可见与状态联动）。
+- 1.3.0 基线历史证据保留在 `docs/VALIDATION.md`（1.19.0 隔离实例 52/52、review 21/21、stop 24/24）。
 
-外部审核复核（2026-11-23）：报告 8 条中 7 条代码问题确认并修复（多备选、失败后新消息、草稿位置、工具+失败、预览绑定、AI 连续回复+工具、清除保存确认），测试工具 2 处已改。用户已确认保持：大量手动冻结在快照中重复保存的体积；生成中途改冷却数按完成时设置记录。手动停止后的 8 种组合操作已用 `tests/e2e/stop.mjs` 实测（24/24）。
+未验证：1.3.1 尚未在官方 SillyTavern 1.19.0 隔离实例重跑 e2e；尚未在用户自己的酒馆与真实模型、Text Completion 后端、SillyDroid 手机实机验证；MVU、记忆类插件与本插件同时写 extra 的情况未测；酒馆助手 `setChatMessages` 传入 `extra` 时会整体替换 extra（源码所见，运行中未丢失）。
 
-未验证：用户自己的酒馆与真实模型；Text Completion 后端（外部报告基础循环通过，本地未跑）；SillyDroid 手机；MVU、记忆类插件与本插件同时写 extra 的情况；酒馆助手 `setChatMessages` 传入 `extra` 时会整体替换 extra（源码所见，运行中未丢失）。
-
-下一步：用户审 PR 并实机试用；根据反馈调整默认值（蓝灯、AI 连续回复）。
+下一步：由用户审阅本地分支 `feat/v1.3.1-timeline-greencap` 改动后决定是否推送远端（或合并 PR #1），并在真实酒馆与实机上按 `docs/ACCEPTANCE.md` 试跑绿灯上限与时间线联动。

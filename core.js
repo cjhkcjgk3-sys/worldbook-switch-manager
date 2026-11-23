@@ -1,7 +1,7 @@
-/** Pure cooldown rules. A round is opened by an anchor message (normally a user message). */
+/** Pure cooldown and per-turn green-cap rules. A round is opened by an anchor message (normally a user message). */
 export const ID = 'worldbook_switch_manager';
-export const VERSION = '1.3.0';
-export const DEFAULTS = Object.freeze({ enabled: true, automatic: true, delay: 0, cooldown: 1, includeConstant: false, aiTurns: false, selection: {} });
+export const VERSION = '1.3.1';
+export const DEFAULTS = Object.freeze({ enabled: true, automatic: true, delay: 0, cooldown: 1, includeConstant: false, aiTurns: false, capEnabled: false, capLimit: 5, selection: {} });
 export const entryKey = (world, uid) => JSON.stringify([String(world), String(uid)]);
 export const parseKey = key => { try { const [world, uid] = JSON.parse(key); return { world, uid }; } catch { return null; } };
 export const integer = (value, min = 0) => Math.max(min, Math.min(100000, Math.trunc(Number(value) || min)));
@@ -18,15 +18,24 @@ export function normalizeSelection(value) {
 }
 export function selectionOf(settings, world) { return own(settings.selection, world); }
 export function settingsWithDefaults(value = {}) {
-    return {
+    const includeConstant = value.includeConstant !== undefined
+        ? Boolean(value.includeConstant)
+        : typeof value.protectConstant === 'boolean'
+            ? !value.protectConstant
+            : DEFAULTS.includeConstant;
+    const out = {
         ...structuredClone({ ...DEFAULTS, selection: undefined }), ...value,
         enabled: value.enabled ?? DEFAULTS.enabled,
         automatic: value.automatic ?? DEFAULTS.automatic,
-        includeConstant: Boolean(value.includeConstant ?? DEFAULTS.includeConstant),
+        includeConstant,
         aiTurns: Boolean(value.aiTurns ?? DEFAULTS.aiTurns),
+        capEnabled: Boolean(value.capEnabled ?? DEFAULTS.capEnabled),
+        capLimit: integer(value.capLimit ?? DEFAULTS.capLimit, 1),
         delay: integer(value.delay), cooldown: integer(value.cooldown ?? 1, 1),
         selection: normalizeSelection(value.selection),
     };
+    delete out.protectConstant;
+    return out;
 }
 export function freshState(reason = '') {
     return { clock: 0, auto: {}, manual: {}, lastTurn: null, notice: reason };
@@ -94,6 +103,123 @@ export function freeze(state, keys, rounds, start = state.clock + 1) {
 }
 export function unfreeze(state, keys) {
     for (const key of keys) delete state.manual[key];
+}
+function matchKeyInText(text, rawKey, { caseSensitive = false, matchWholeWords = false } = {}) {
+    if (typeof text !== 'string' || !text || typeof rawKey !== 'string' || !rawKey.trim()) return -1;
+    const rxMatch = rawKey.match(/^\/(.+)\/([gimsuy]*)$/);
+    if (rxMatch) {
+        try {
+            const flags = rxMatch[2].replace(/[gy]/g, '');
+            const m = new RegExp(rxMatch[1], flags).exec(text);
+            return m ? m.index : -1;
+        } catch {
+            return -1;
+        }
+    }
+    if (matchWholeWords && /^[A-Za-z0-9_ -]+$/.test(rawKey)) {
+        const escaped = rawKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const m = new RegExp(`(?<![A-Za-z0-9_])${escaped}(?![A-Za-z0-9_])`, caseSensitive ? '' : 'i').exec(text);
+        return m ? m.index : -1;
+    }
+    const hay = caseSensitive ? text : text.toLocaleLowerCase();
+    const needle = caseSensitive ? rawKey : rawKey.toLocaleLowerCase();
+    return hay.indexOf(needle);
+}
+function firstKeyMatch(text, keys, opts) {
+    let best = -1;
+    for (const k of keys) {
+        const idx = matchKeyInText(text, k, opts);
+        if (idx >= 0 && (best < 0 || idx < best)) best = idx;
+    }
+    return best;
+}
+function secondaryMatched(entry, recentText, opts) {
+    if (!entry.selective || !Array.isArray(entry.keysecondary) || !entry.keysecondary.length) return true;
+    const secKeys = entry.keysecondary.filter(k => typeof k === 'string' && k.trim());
+    if (!secKeys.length) return true;
+    const hits = secKeys.map(k => matchKeyInText(recentText, k, opts) >= 0);
+    const logic = entry.selectiveLogic ?? 0;
+    if (logic === 1) return !hits.every(Boolean);
+    if (logic === 2) return !hits.some(Boolean);
+    if (logic === 3) return hits.every(Boolean);
+    return hits.some(Boolean);
+}
+/** Return selective entries exceeding per-turn capLimit, keeping latest-user > earlier-user > model mentions. */
+export function selectGreenCapVictims(entries, chat, settings, defaults = {}) {
+    if (!settings.enabled || !settings.capEnabled || !Array.isArray(entries) || !Array.isArray(chat) || !chat.length) return [];
+    const limit = integer(settings.capLimit ?? 5, 1);
+    const defaultDepth = integer(defaults.scanDepth ?? 2, 1);
+    const candidates = new Map();
+    let maxDepth = 0;
+    for (let seq = 0; seq < entries.length; seq++) {
+        const e = entries[seq];
+        if (!e || e.disable || e.constant || e.vectorized) continue;
+        if (!managed(settings, e.world, e.uid, false)) continue;
+        if (e.scanDepth === 0) continue;
+        const keys = Array.isArray(e.key) ? e.key : (Array.isArray(e.keys) ? e.keys : []);
+        if (!keys.length) continue;
+        const key = entryKey(e.world, e.uid);
+        const existing = candidates.get(key);
+        if (existing) {
+            existing.copies.push(e);
+            continue;
+        }
+        const depth = integer(e.scanDepth ?? defaultDepth, 1);
+        if (depth > maxDepth) maxDepth = depth;
+        candidates.set(key, { copies: [e], entry: e, keys, depth, seq });
+    }
+    if (candidates.size <= limit) return [];
+    const messages = [];
+    for (let i = chat.length - 1; i >= 0 && messages.length < maxDepth; i--) {
+        const m = chat[i];
+        if (m && !m.is_system) messages.push(m);
+    }
+    if (!messages.length) return [];
+    messages.reverse();
+    let lastUserIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].is_user) { lastUserIdx = i; break; }
+    }
+    const sliceCache = new Map();
+    const matched = [];
+    for (const c of candidates.values()) {
+        let sliceInfo = sliceCache.get(c.depth);
+        if (!sliceInfo) {
+            const recent = messages.slice(-c.depth);
+            const startOffset = messages.length - recent.length;
+            sliceInfo = { recent, startOffset, recentText: recent.map(m => m.mes ?? '').join('\n') };
+            sliceCache.set(c.depth, sliceInfo);
+        }
+        const { recent, startOffset, recentText } = sliceInfo;
+        const opts = {
+            caseSensitive: c.entry.caseSensitive ?? defaults.caseSensitive ?? false,
+            matchWholeWords: c.entry.matchWholeWords ?? defaults.matchWholeWords ?? false,
+        };
+        if (!secondaryMatched(c.entry, recentText, opts)) continue;
+        let hit = null;
+        if (lastUserIdx >= startOffset) {
+            const pos = firstKeyMatch(recent[lastUserIdx - startOffset]?.mes ?? '', c.keys, opts);
+            if (pos >= 0) hit = { tier: 0, msgAge: 0, pos };
+        }
+        if (!hit) {
+            for (let j = recent.length - 1; j >= 0; j--) {
+                if (!recent[j].is_user || startOffset + j === lastUserIdx) continue;
+                const pos = firstKeyMatch(recent[j].mes ?? '', c.keys, opts);
+                if (pos >= 0) { hit = { tier: 1, msgAge: recent.length - 1 - j, pos }; break; }
+            }
+        }
+        if (!hit) {
+            for (let j = recent.length - 1; j >= 0; j--) {
+                if (recent[j].is_user) continue;
+                const pos = firstKeyMatch(recent[j].mes ?? '', c.keys, opts);
+                if (pos >= 0) { hit = { tier: 2, msgAge: recent.length - 1 - j, pos }; break; }
+            }
+        }
+        if (hit) matched.push({ copies: c.copies, ...hit, seq: c.seq });
+    }
+    if (matched.length <= limit) return [];
+    matched.sort((a, b) => (a.tier - b.tier) || (a.msgAge - b.msgAge) || (a.pos - b.pos) || (a.seq - b.seq));
+    return matched.slice(limit).flatMap(x => x.copies);
 }
 export function promptText(value) {
     if (typeof value === 'string') return value;

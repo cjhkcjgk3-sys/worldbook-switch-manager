@@ -140,5 +140,12 @@ export function createAdapter(wi, regex, openai) {
             const sources = (cache ?? this.prepare(ctx)).sources;
             return !sources.some(text => text.includes(needle));
         },
+        scanOptions() {
+            return {
+                scanDepth: Number(wi?.world_info_depth) || 2,
+                caseSensitive: Boolean(wi?.world_info_case_sensitive),
+                matchWholeWords: Boolean(wi?.world_info_match_whole_words),
+            };
+        },
     };
 }

@@ -1,6 +1,6 @@
 # API 依据与依赖合同
 
-核对日期：2026-11-06；1.3.0 于 2026-11-23 按 1.19.0 补充下表末尾各行。目标为 SillyTavern 前端 UI Extension。官方 `release` 分支只用于定位，实际施工固定到以下提交。
+核对日期：2026-11-06；1.3.0 于 2026-11-23 按 1.19.0 补充下表末尾各行；1.3.1 于 2026-11-23 补充绿灯上限扫描配置字段。目标为 SillyTavern 前端 UI Extension。官方 `release` 分支只用于定位，实际施工固定到以下提交。
 
 - 版本：`1.19.0`（1.3.0 起主验收）；`1.18.0`（可加载，1.3.0 未重测）
 - 1.18.0 提交：`51ad27fb86d39a3daca3adaa970375c9670c12df`
@@ -34,6 +34,7 @@
 | `TOOL_CALLS_PERFORMED` | `public/scripts/tool-calling.js`；`public/script.js:Generate` | 工具调用后续请求沿用首个请求的证据 | 1.19.0 实例：流式/非流式均通过 |
 | `streamingProcessor.isStopped/isFinished/abortController.signal.aborted` | `public/script.js:StreamingProcessor` | 停止后的半截回复：GENERATION_STOPPED → ENDED → MESSAGE_RECEIVED（aborted=true） | 1.19.0 实例：停止不写记录 |
 | `world_names` | `public/scripts/world-info.js` | 列出已不存在的范围选择 | 源码已核对 |
+| `world_info_depth` / `world_info_case_sensitive` / `world_info_match_whole_words` / `world_info_logic` | `public/scripts/world-info.js` | 1.3.1：单回合绿灯上限按原生扫描深度、大小写、全词与副关键词逻辑（0–3）排序取前 N 条 | 1.19.0 源码已核对 |
 
 上述内部模块只读导入是本项目明确声明的版本依赖，不是跨版本稳定 API。冻结不依赖 Tavern Helper 写世界书接口，因为那会持久改写条目；也不使用私有 DOM 来推测生成结果。
 

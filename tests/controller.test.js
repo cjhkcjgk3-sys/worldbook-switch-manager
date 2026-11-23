@@ -337,3 +337,200 @@ test('chat-completion payload must keep the entry after final transformations', 
     await st.emit('MESSAGE_RECEIVED', st.chat.length - 1, 'normal');
     assert.equal(st.status(DRAGON).cooldown, 0);
 });
+
+test('green cap + timeline cooldown staggers activations and skips recording capped entries', async () => {
+    const st = new FakeST({ capEnabled: true, capLimit: 3, delay: 0, cooldown: 1 });
+    st.entries = [
+        { world: 'book', uid: 1, key: ['甲'], content: 'LORE_1', position: 0 },
+        { world: 'book', uid: 2, key: ['乙'], content: 'LORE_2', position: 0 },
+        { world: 'book', uid: 3, key: ['丙'], content: 'LORE_3', position: 0 },
+        { world: 'book', uid: 4, key: ['丁'], content: 'LORE_4', position: 0 },
+        { world: 'book', uid: 5, key: ['戊'], content: 'LORE_5', position: 0 },
+        { world: 'book', uid: 6, key: ['己'], content: 'LORE_6', position: 0 },
+    ];
+    await st.user('甲 乙 丙');
+    await st.generate('normal', { text: '甲 乙 丙', scanText: '甲 乙 丙' });
+    // Round 2: user mentions 丁 戊 己 while prior AI reply mentioned 甲 乙 丙 (now in cooldown or Tier 2)
+    const r2 = await round(st, '丁 戊 己', { scanText: '甲 乙 丙 丁 戊 己' });
+    assert.deepEqual(injected(r2), [4, 5, 6]);
+    assert.equal(st.manager.lastCapSkipped, 0);
+
+    // Round 3: 4/5/6 are in cooldown; user mentions 甲 乙 丙 plus extra green entries
+    st.entries.push(
+        { world: 'book', uid: 7, key: ['庚'], content: 'LORE_7', position: 0 },
+        { world: 'book', uid: 8, key: ['辛'], content: 'LORE_8', position: 0 },
+    );
+    const r3 = await round(st, '甲 乙 丙 庚 辛', { scanText: '甲 乙 丙 丁 戊 己 庚 辛' });
+    assert.deepEqual(injected(r3), [1, 2, 3]);
+    assert.equal(st.manager.lastCapSkipped, 2);
+    assert.deepEqual(readDelta(st.chat.at(-1)).inj, [['book', '1'], ['book', '2'], ['book', '3']]);
+    assert.equal(st.status(7).cooldown, 0, 'capped entries are not recorded or cooled');
+    assert.equal(st.status(8).cooldown, 0);
+
+    // Round 4: 1/2/3 enter cooldown, capped 7 & 8 activate naturally
+    const r4 = await round(st, '继续看庚和辛', { scanText: '甲 乙 丙 庚 辛' });
+    assert.deepEqual(injected(r4), [7, 8]);
+    assert.equal(st.manager.lastCapSkipped, 0);
+});
+
+test('green cap preserves consistency across timeline rollback and branching', async () => {
+    const st = new FakeST({ capEnabled: true, capLimit: 2, delay: 0, cooldown: 2 });
+    st.entries = [
+        { world: 'book', uid: 1, key: ['k1'], content: 'LORE_1', position: 0 },
+        { world: 'book', uid: 2, key: ['k2'], content: 'LORE_2', position: 0 },
+        { world: 'book', uid: 3, key: ['k3'], content: 'LORE_3', position: 0 },
+    ];
+    const r1 = await round(st, 'k1 k2 k3', { scanText: 'k1 k2 k3' });
+    assert.deepEqual(injected(r1), [1, 2]);
+    assert.equal(st.manager.lastCapSkipped, 1);
+
+    const branchPoint = st.chat.length - 1;
+    const r2 = await round(st, 'k1 k2 k3', { scanText: 'k1 k2 k3' });
+    assert.deepEqual(injected(r2), [3]);
+    assert.equal(st.status(3).cooldown, 2);
+
+    // Branch back to round 1 reply: uid 3 has no cooldown there and is eligible alongside uid 1/2 once they thaw
+    const mainId = st.chatId;
+    await st.branch(branchPoint);
+    assert.equal(st.status(3).cooldown, 0);
+    assert.equal(st.status(1).cooldown, 2);
+    const rBranch = await round(st, 'k1 k2 k3', { scanText: 'k1 k2 k3' });
+    assert.deepEqual(injected(rBranch), [3]);
+
+    // Roll back main chat to before round 2 and verify uid 3 is free again
+    await st.open(mainId);
+    await st.truncate(branchPoint + 1);
+    assert.equal(st.status(3).cooldown, 0);
+    assert.equal(st.status(1).cooldown, 2);
+});
+
+test('green cap excludes old swipe/regenerate reply, preserves continue reply and aiTurns anchor', async () => {
+    const entries = [
+        { world: 'book', uid: 1, key: ['oldA'], content: 'LORE_1', position: 0, disable: false },
+        { world: 'book', uid: 2, key: ['oldB'], content: 'LORE_2', position: 0, disable: false },
+        { world: 'book', uid: 3, key: ['userKey'], content: 'LORE_3', position: 0, disable: false },
+    ];
+    // 1) swipe: target still contains oldA/oldB before host clears it; swipe must ignore target's old text
+    const s1 = new FakeST({ capEnabled: true, capLimit: 1, cooldown: 1 });
+    s1.entries = structuredClone(entries);
+    await s1.user('start');
+    await s1.generate('normal', { text: 'clean', scanText: '' });
+    await s1.user('userKey');
+    await s1.generate('normal', { text: 'oldA oldB', scanText: '' });
+    // Now swipe round 2 where target reply mentions oldA oldB
+    const target = s1.chat[s1.chat.length - 1];
+    target.swipe_info[0].extra = structuredClone(target.extra);
+    target.swipes.push('oldA oldB');
+    target.swipe_info.push({ extra: structuredClone(target.extra) });
+    target.swipe_id = 1;
+    target.mes = 'oldA oldB';
+    await s1.emit('GENERATION_STARTED', 'swipe', {}, false);
+    const swipePayload = { globalLore: structuredClone(s1.entries) };
+    await s1.emit('WORLDINFO_ENTRIES_LOADED', swipePayload);
+    assert.equal(swipePayload.globalLore.find(e => e.uid === 3).disable, false, 'userKey is not crowded out by replaced swipe');
+    assert.equal(s1.manager.lastCapSkipped, 0);
+
+    // 2a) regenerate with un-deleted trailing reply (aiTurns off) strips the trailing reply
+    const s2a = new FakeST({ capEnabled: true, capLimit: 1, aiTurns: false, cooldown: 1 });
+    s2a.entries = structuredClone(entries);
+    await round(s2a, 'userKey', { text: 'oldA oldB', scanText: '' });
+    await s2a.emit('GENERATION_STARTED', 'regenerate', {}, false);
+    const regenUnpopped = { globalLore: structuredClone(s2a.entries) };
+    await s2a.emit('WORLDINFO_ENTRIES_LOADED', regenUnpopped);
+    assert.equal(regenUnpopped.globalLore.find(e => e.uid === 3).disable, false);
+    assert.equal(s2a.manager.lastCapSkipped, 0);
+
+    // 2b) regenerate with aiTurns on (1.19 pops trailing reply before scan) preserves previous AI anchor
+    const s2b = new FakeST({ capEnabled: true, capLimit: 1, aiTurns: true, cooldown: 1 });
+    s2b.entries = structuredClone(entries);
+    await s2b.user('start');
+    await s2b.generate('normal', { text: 'oldA', scanText: '' });
+    await s2b.generate('normal', { text: 'oldB', scanText: '' });
+    await s2b.emit('GENERATION_STARTED', 'regenerate', {}, false);
+    s2b.chat.pop();
+    await s2b.emit('MESSAGE_DELETED', s2b.chat.length);
+    const regenPayload = { globalLore: structuredClone(s2b.entries) };
+    await s2b.emit('WORLDINFO_ENTRIES_LOADED', regenPayload);
+    assert.equal(regenPayload.globalLore.find(e => e.uid === 1).disable, false);
+    assert.equal(s2b.manager.lastCapSkipped, 0);
+
+    // 3) continue preserves partial reply text
+    const s3 = new FakeST({ capEnabled: true, capLimit: 1, cooldown: 1 });
+    s3.entries = structuredClone(entries);
+    await round(s3, 'userKey', { text: 'oldA oldB', scanText: '' });
+    await s3.emit('GENERATION_STARTED', 'continue', {}, false);
+    const contPayload = { globalLore: structuredClone(s3.entries) };
+    await s3.emit('WORLDINFO_ENTRIES_LOADED', contPayload);
+    // userKey (Tier 0) kept, oldA & oldB (Tier 2 in partial reply) skipped -> 2 victims
+    assert.equal(contPayload.globalLore.find(e => e.uid === 3).disable, false);
+    assert.equal(contPayload.globalLore.find(e => e.uid === 1).disable, true);
+    assert.equal(contPayload.globalLore.find(e => e.uid === 2).disable, true);
+    assert.equal(s3.manager.lastCapSkipped, 2);
+});
+
+test('post-generation dryRun and nested quiet scans preserve lastCapSkipped; toggling off resets it', async () => {
+    const st = new FakeST({ capEnabled: true, capLimit: 1, cooldown: 1 });
+    st.entries = [
+        { world: 'book', uid: 1, key: ['alpha'], content: 'L1', position: 0 },
+        { world: 'book', uid: 2, key: ['beta'], content: 'L2', position: 0 },
+        { world: 'book', uid: 3, key: ['gamma'], content: 'L3', position: 0 },
+    ];
+    await round(st, 'alpha beta gamma', { scanText: 'alpha beta gamma', quietInside: true });
+    assert.equal(st.manager.lastCapSkipped, 2);
+
+    // Post-generation dryRun scan (like 1.19 token recount) must not overwrite lastCapSkipped
+    await st.emit('GENERATION_STARTED', 'normal', {}, true);
+    await st.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: structuredClone(st.entries) });
+    assert.equal(st.manager.lastCapSkipped, 2);
+
+    // Nested quiet scan while collecting must not overwrite lastCapSkipped
+    await st.user('alpha beta gamma');
+    await st.emit('GENERATION_STARTED', 'normal', {}, false);
+    await st.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: structuredClone(st.entries) });
+    assert.equal(st.manager.lastCapSkipped, 1);
+    await st.emit('GENERATION_STARTED', 'quiet', {}, false);
+    await st.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: [] });
+    assert.equal(st.manager.lastCapSkipped, 1);
+    await st.emit('GENERATION_ENDED');
+    await st.emit('GENERATION_ENDED');
+
+    // Toggling capEnabled off clears lastCapSkipped
+    await round(st, 'alpha beta gamma', { scanText: 'alpha beta gamma' });
+    assert.equal(st.manager.lastCapSkipped, 1); // uid 1 still in round 2 cooldown; uid 2 & 3 compete -> 1 skipped
+    st.manager.updateSettings({ capEnabled: false });
+    assert.equal(st.manager.lastCapSkipped, 0);
+});
+
+test('green cap counts duplicate (world, uid) across lore buckets once and disables all copies', async () => {
+    const st = new FakeST({ capEnabled: true, capLimit: 2 });
+    const e1 = { world: 'book', uid: 1, key: ['k1'], content: 'L1', position: 0, disable: false };
+    const e2 = { world: 'book', uid: 2, key: ['k2'], content: 'L2', position: 0, disable: false };
+    const e3 = { world: 'book', uid: 3, key: ['k3'], content: 'L3', position: 0, disable: false };
+    await st.user('k1 k2 k3');
+    await st.emit('GENERATION_STARTED', 'normal', {}, false);
+    const payload = {
+        globalLore: [structuredClone(e1), structuredClone(e2), structuredClone(e3)],
+        characterLore: [structuredClone(e1), structuredClone(e2), structuredClone(e3)],
+    };
+    await st.emit('WORLDINFO_ENTRIES_LOADED', payload);
+    assert.equal(payload.globalLore[0].disable, false);
+    assert.equal(payload.characterLore[0].disable, false);
+    assert.equal(payload.globalLore[1].disable, false);
+    assert.equal(payload.characterLore[1].disable, false);
+    assert.equal(payload.globalLore[2].disable, true);
+    assert.equal(payload.characterLore[2].disable, true);
+    assert.equal(st.manager.lastCapSkipped, 1);
+});
+
+test('table/status plugin in-place MESSAGE_UPDATED preserves timeline cooldowns and manual freezes', async () => {
+    const st = new FakeST({ cooldown: 2 });
+    await round(st, 'dragon');
+    const key = entryKey('book', CASTLE);
+    st.manager.manualFreeze([key], 3);
+    st.chat[st.chat.length - 1].mes += '\n<table data-plugin="status">HP:100</table>';
+    await st.emit('MESSAGE_UPDATED', st.chat.length - 1);
+    assert.equal(st.status(DRAGON).cooldown, 2);
+    assert.equal(st.status(CASTLE).manual, 3);
+    assert.equal(st.blocked(DRAGON), true);
+    assert.equal(st.blocked(CASTLE), true);
+});

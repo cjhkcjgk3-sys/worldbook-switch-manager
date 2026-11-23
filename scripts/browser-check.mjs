@@ -18,7 +18,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const browser = await chromium.launch({ executablePath: process.env.WSM_CHROMIUM || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
 const results = [];
 try {
-    for (const viewport of [{ width: 1280, height: 1000 }, { width: 390, height: 844 }, { width: 320, height: 720 }]) {
+    for (const viewport of [{ width: 1280, height: 1000 }, { width: 390, height: 844 }, { width: 320, height: 568 }, { width: 740, height: 360 }]) {
         const page = await browser.newPage({ viewport });
         const errors = [];
         page.on('pageerror', e => errors.push(e.message));
@@ -35,6 +35,22 @@ try {
         await page.evaluate(() => window.harness.launcher.destroy());
         assert.equal(await page.locator('#worldbook_switch_manager_wand_container').count(), 0);
         await page.locator('.wsm > details > summary').click();
+        assert.equal(await page.locator('.wsm > details > summary').innerText(), '世界书自动开关管理器');
+        assert.match(await page.locator('.wsm-body > .wsm-help').last().innerText(), /版本 1\.3\.1/);
+        const capInput = page.getByRole('spinbutton', { name: '单回合绿灯上限（条）', exact: true });
+        assert.equal(await capInput.isVisible(), true);
+        assert.equal(await capInput.isEnabled(), true);
+        await capInput.fill('3');
+        await capInput.blur();
+        assert.equal(await page.evaluate(() => window.harness.manager.settings.capLimit), 3);
+        const capToggle = page.getByRole('checkbox', { name: '启用单回合绿灯触发上限（用户提及优先）', exact: true });
+        await capToggle.check();
+        assert.match(await page.locator('.wsm-scope').innerText(), /绿灯上限 3 条/);
+        await capToggle.uncheck();
+        await capInput.fill('5');
+        await capInput.blur();
+        assert.equal(await page.evaluate(() => window.harness.manager.settings.capEnabled), false);
+        assert.equal(await page.evaluate(() => window.harness.manager.settings.capLimit), 5);
         await page.getByText('原神综合世界书 · 2 条', { exact: true }).click();
         await page.getByRole('checkbox', { name: '雷电将军', exact: true }).check();
         assert.match(await page.locator('.wsm-scope').innerText(), /精细管理/);
@@ -64,7 +80,7 @@ try {
         assert.deepEqual(errors, []);
         await mkdir(resolve(root, 'docs'), { recursive: true });
         if (viewport.width === 390) await page.screenshot({ path: resolve(root, 'docs/mobile-preview.png'), fullPage: true });
-        results.push({ viewport, result: 'PASS', checks: ['magic wand menu item: click, Enter/Space and destroy', 'UI scope and independent manual selection', 'three-turn cooldown with regeneration', 'unselected blue entry', 'manual/auto co-existence', 'clear -> all', 'no horizontal overflow', 'no browser exceptions'] });
+        results.push({ viewport, result: 'PASS', checks: ['magic wand menu item: click, Enter/Space and destroy', 'version 1.3.1 & green-cap controls', 'UI scope and independent manual selection', 'three-turn cooldown with regeneration', 'unselected blue entry', 'manual/auto co-existence', 'clear -> all', 'no horizontal overflow', 'no browser exceptions'] });
         await page.close();
     }
     const page = await browser.newPage({viewport:{width:390,height:844}});

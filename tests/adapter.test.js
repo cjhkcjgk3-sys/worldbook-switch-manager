@@ -95,3 +95,12 @@ test('list gracefully tolerates partial worldbook load failures', async () => {
     assert.equal(result.books.includes('broken_book'), false);
     assert.equal(result.entries.length > 0, true);
 });
+
+test('scanOptions reads native depth, case sensitivity and whole-word flags with safe fallbacks', () => {
+    const h = setup();
+    assert.deepEqual(h.adapter.scanOptions(), { scanDepth: 2, caseSensitive: false, matchWholeWords: false });
+    h.wi.world_info_depth = 6;
+    h.wi.world_info_case_sensitive = true;
+    h.wi.world_info_match_whole_words = true;
+    assert.deepEqual(h.adapter.scanOptions(), { scanDepth: 6, caseSensitive: true, matchWholeWords: true });
+});
