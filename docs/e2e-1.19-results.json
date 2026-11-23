@@ -1,0 +1,848 @@
+[
+  {
+    "name": "E0.extension_loaded",
+    "pass": true
+  },
+  {
+    "name": "E1.cooldown_pattern",
+    "pass": true,
+    "info": [
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  {
+    "name": "E1.constant_not_cooled",
+    "pass": true
+  },
+  {
+    "name": "E1.saved_records",
+    "pass": true,
+    "info": [
+      {
+        "isSmallSys": false,
+        "reasoning": "",
+        "wsm": {
+          "v": 1,
+          "s": {
+            "id": "b53633f5-9a49-4992-900c-70b9925a7c79",
+            "round": 4,
+            "auto": {},
+            "manual": {}
+          }
+        }
+      },
+      {
+        "api": "custom",
+        "model": "mock-model",
+        "reasoning": "",
+        "reasoning_duration": null,
+        "reasoning_signature": null,
+        "time_to_first_token": 11,
+        "wsm": {
+          "v": 1,
+          "d": {
+            "anchor": "b53633f5-9a49-4992-900c-70b9925a7c79",
+            "round": 4,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "E2.new_swipe_round_start_state",
+    "pass": true,
+    "info": {
+      "u": false,
+      "mes": "mock reply #66 to: dragon a",
+      "w": {
+        "v": 1,
+        "d": {
+          "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+          "round": 1,
+          "inj": [],
+          "delay": 0,
+          "cooldown": 2
+        }
+      },
+      "sid": 1,
+      "si": [
+        {
+          "v": 1,
+          "d": {
+            "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        },
+        {
+          "v": 1,
+          "d": {
+            "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+            "round": 1,
+            "inj": [],
+            "delay": 0,
+            "cooldown": 2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "E2.swipe1_shown_dragon_free",
+    "pass": true
+  },
+  {
+    "name": "E2.swipe0_shown_dragon_cooled",
+    "pass": true
+  },
+  {
+    "name": "E2.delswipe_remaining_shown",
+    "pass": true,
+    "info": {
+      "u": false,
+      "mes": "mock reply #66 to: dragon a",
+      "w": {
+        "v": 1,
+        "d": {
+          "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+          "round": 1,
+          "inj": [],
+          "delay": 0,
+          "cooldown": 2
+        }
+      },
+      "sid": 0,
+      "si": [
+        {
+          "v": 1,
+          "d": {
+            "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+            "round": 1,
+            "inj": [],
+            "delay": 0,
+            "cooldown": 2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "E2.after_delswipe_dragon_free",
+    "pass": true
+  },
+  {
+    "name": "E3.regenerate_same_round",
+    "pass": true
+  },
+  {
+    "name": "E3.continue_keeps_record",
+    "pass": true,
+    "info": {
+      "u": false,
+      "mes": "mock reply #71 to: dragon r mo",
+      "w": {
+        "v": 1,
+        "d": {
+          "anchor": "08611ea1-b77d-4a3a-b963-abbd6d81cdbb",
+          "round": 1,
+          "inj": [
+            [
+              "Eldoria",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "1"
+            ],
+            [
+              "Eldoria",
+              "3"
+            ],
+            [
+              "WSMTest",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "2"
+            ]
+          ],
+          "delay": 0,
+          "cooldown": 2
+        }
+      },
+      "sid": 0,
+      "si": [
+        {
+          "v": 1,
+          "d": {
+            "anchor": "08611ea1-b77d-4a3a-b963-abbd6d81cdbb",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "E3.next_round_cooled",
+    "pass": true
+  },
+  {
+    "name": "E5.ten_rounds",
+    "pass": true,
+    "info": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  {
+    "name": "E5.rollback_to_16_round9_cooled",
+    "pass": true
+  },
+  {
+    "name": "E5.round10_free",
+    "pass": true
+  },
+  {
+    "name": "E5.unanswered_user_round8_cooled",
+    "pass": true
+  },
+  {
+    "name": "E6.middle_delete_no_effect",
+    "pass": true
+  },
+  {
+    "name": "E7.branch_opened",
+    "pass": true,
+    "info": 3
+  },
+  {
+    "name": "E7.branch_round2_cooled",
+    "pass": true
+  },
+  {
+    "name": "E7.branch_round3_cooled",
+    "pass": true
+  },
+  {
+    "name": "E7.branch_round4_free",
+    "pass": true
+  },
+  {
+    "name": "E7.back_to_main",
+    "pass": true,
+    "info": [
+      20,
+      20
+    ]
+  },
+  {
+    "name": "E7.main_state_kept",
+    "pass": true
+  },
+  {
+    "name": "E7.checkpoint_created",
+    "pass": true,
+    "info": "wsm-e2e-checkpoint-1795412854190"
+  },
+  {
+    "name": "E7.checkpoint_round2_cooled",
+    "pass": true
+  },
+  {
+    "name": "E7.checkpoint_round3_cooled",
+    "pass": true
+  },
+  {
+    "name": "E7.checkpoint_round4_free",
+    "pass": true
+  },
+  {
+    "name": "E8.after_reload_cooled",
+    "pass": true
+  },
+  {
+    "name": "E9.stopped_no_record",
+    "pass": true,
+    "info": [
+      {
+        "u": true,
+        "mes": "dragon MOCKSLOW",
+        "w": null
+      },
+      {
+        "u": false,
+        "mes": "slow slow slow slow slow slow ",
+        "w": null,
+        "sid": 0,
+        "si": [
+          null
+        ]
+      }
+    ]
+  },
+  {
+    "name": "E9.after_stop_free",
+    "pass": true
+  },
+  {
+    "name": "E9.failed_no_record",
+    "pass": true,
+    "info": [
+      {
+        "u": false,
+        "mes": "*You wake with a start, recall",
+        "w": null,
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "u": true,
+        "mes": "dragon MOCKFAIL",
+        "w": null
+      }
+    ]
+  },
+  {
+    "name": "E9.after_fail_free",
+    "pass": true
+  },
+  {
+    "name": "E9.failed_swipe_restores",
+    "pass": true,
+    "info": {
+      "u": false,
+      "mes": "mock reply #104 to: dragon aft",
+      "w": {
+        "v": 1,
+        "d": {
+          "anchor": "b281a133-21b4-4624-8943-17c81fda0f9b",
+          "round": 2,
+          "inj": [
+            [
+              "WSMTest",
+              "0"
+            ]
+          ],
+          "delay": 0,
+          "cooldown": 2
+        }
+      },
+      "sid": 0,
+      "si": [
+        {
+          "v": 1,
+          "d": {
+            "anchor": "b281a133-21b4-4624-8943-17c81fda0f9b",
+            "round": 2,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "E10.tool_stream_record",
+    "pass": true,
+    "info": [
+      {
+        "u": true,
+        "mes": "MOCKTOOL dragon true",
+        "w": {
+          "v": 1,
+          "s": {
+            "id": "6d402da3-6764-4cbd-814e-596de7ec2a29",
+            "round": 1,
+            "auto": {},
+            "manual": {}
+          }
+        }
+      },
+      {
+        "u": false,
+        "mes": "<details><summary>Tool calls: ",
+        "w": null
+      },
+      {
+        "u": false,
+        "mes": "mock reply #107 to: MOCKTOOL d",
+        "w": {
+          "v": 1,
+          "d": {
+            "anchor": "6d402da3-6764-4cbd-814e-596de7ec2a29",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        },
+        "sid": 0,
+        "si": [
+          {
+            "v": 1,
+            "d": {
+              "anchor": "6d402da3-6764-4cbd-814e-596de7ec2a29",
+              "round": 1,
+              "inj": [
+                [
+                  "Eldoria",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "1"
+                ],
+                [
+                  "Eldoria",
+                  "3"
+                ],
+                [
+                  "WSMTest",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "2"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "E10.tool_stream_next_cooled",
+    "pass": true
+  },
+  {
+    "name": "E10.tool_nonstream_record",
+    "pass": true,
+    "info": [
+      {
+        "u": true,
+        "mes": "MOCKTOOL dragon false",
+        "w": {
+          "v": 1,
+          "s": {
+            "id": "de1d714e-96f7-4905-8c9d-73229c513568",
+            "round": 1,
+            "auto": {},
+            "manual": {}
+          }
+        }
+      },
+      {
+        "u": false,
+        "mes": "<details><summary>Tool calls: ",
+        "w": null
+      },
+      {
+        "u": false,
+        "mes": "mock reply #110 to: MOCKTOOL d",
+        "w": {
+          "v": 1,
+          "d": {
+            "anchor": "de1d714e-96f7-4905-8c9d-73229c513568",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        },
+        "sid": 0,
+        "si": [
+          {
+            "v": 1,
+            "d": {
+              "anchor": "de1d714e-96f7-4905-8c9d-73229c513568",
+              "round": 1,
+              "inj": [
+                [
+                  "Eldoria",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "1"
+                ],
+                [
+                  "Eldoria",
+                  "3"
+                ],
+                [
+                  "WSMTest",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "2"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "E10.tool_nonstream_next_cooled",
+    "pass": true
+  },
+  {
+    "name": "E11.constant_cooled_when_enabled",
+    "pass": true
+  },
+  {
+    "name": "E11.constant_back_when_disabled",
+    "pass": true
+  },
+  {
+    "name": "E11.ai_continuous_same_round",
+    "pass": true
+  },
+  {
+    "name": "E11.aiTurns_counts_ai_reply",
+    "pass": true
+  },
+  {
+    "name": "E12.panel_opens_title_version",
+    "pass": true,
+    "info": {
+      "title": "世界书自动开关管理器",
+      "text": "世界书自动开关管理器\n\n从 1.3.0 起，冷却和手动冻结记录保存在聊天楼层里：切换备选回复、开分支、删楼回退或刷新页面后，都会按当前看得到的楼层恢复。导出或分享聊天文件时会带上这些记录（只有世界书名和条目编号）。\n\n知道了\n启用管理器\n成功注入后自动冷却\n常驻（蓝灯）条目也参与自动冷却\nAI 连续回复也算一回合\n延迟回合\n冷却回合\n\n管理已启用 · 全部管理：当前使用的所有条目 · 下一回合：第 2 回合\n\n设置自动管理范围\n选择临时冻结条目\n\n清空精细选择 = 恢复默认管理全部。整本选择会包含以后新增的条目。\n\n全选搜索结果\n取消选择搜索结果\n清空全部选择\n刷新世界书\nWSMTest · 3 条\nEldoria · 4 条\n\n一个用户消息开启一回合（隐藏的也算）；同一回合内的备选回复、重新生成、继续都沿用该回合。状态显示下一次新回合。解除手动冻结后，自动冷却仍可能生效。\n\n清除本聊天插件数据\n\n版本 1.3.0 · 酒馆 1.19.0"
+    }
+  },
+  {
+    "name": "E12.panel_shows_manual",
+    "pass": true,
+    "info": "手动冻结剩余 2 回合"
+  },
+  {
+    "name": "E12.draft_saved",
+    "pass": true,
+    "info": {
+      "integrity": "d1dce76b-eb45-4a87-8df0-b138f3d90925",
+      "note_prompt": "",
+      "note_interval": 1,
+      "note_position": 1,
+      "note_depth": 4,
+      "note_role": 0,
+      "timedWorldInfo": {
+        "sticky": {},
+        "cooldown": {}
+      },
+      "tainted": true,
+      "lastInContextMessageId": 0,
+      "wsm_draft": {
+        "base": "7cc49917-04fe-44de-b330-4b85069ede0e",
+        "ops": {
+          "[\"WSMTest\",\"2\"]": [
+            2,
+            3
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "E12.freeze_round2",
+    "pass": true
+  },
+  {
+    "name": "E12.draft_committed",
+    "pass": true,
+    "info": {
+      "isSmallSys": false,
+      "reasoning": "",
+      "wsm": {
+        "v": 1,
+        "s": {
+          "id": "fc30fdac-dd10-4d00-8163-9469ed13bf53",
+          "round": 2,
+          "auto": {
+            "[\"Eldoria\",\"0\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 2
+            },
+            "[\"Eldoria\",\"1\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 2
+            },
+            "[\"Eldoria\",\"3\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 2
+            },
+            "[\"Eldoria\",\"2\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 2
+            }
+          },
+          "manual": {
+            "[\"WSMTest\",\"2\"]": {
+              "start": 2,
+              "end": 3
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "E12.freeze_round3",
+    "pass": true
+  },
+  {
+    "name": "E12.freeze_over_round4",
+    "pass": true
+  },
+  {
+    "name": "E12.clear_data_saved",
+    "pass": true
+  },
+  {
+    "name": "E12.after_clear_castle_free",
+    "pass": true
+  },
+  {
+    "name": "E13.group_members_recorded",
+    "pass": true,
+    "info": [
+      {
+        "u": false,
+        "mes": "*You wake with a start, recall",
+        "w": null,
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "u": false,
+        "mes": "[]",
+        "w": null,
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "u": true,
+        "mes": "dragon group",
+        "w": {
+          "v": 1,
+          "s": {
+            "id": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+            "round": 1,
+            "auto": {},
+            "manual": {}
+          }
+        }
+      },
+      {
+        "u": false,
+        "mes": "mock reply #128 to: dragon gro",
+        "w": {
+          "v": 1,
+          "d": {
+            "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+            "round": 1,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        },
+        "sid": 0,
+        "si": [
+          {
+            "v": 1,
+            "d": {
+              "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+              "round": 1,
+              "inj": [
+                [
+                  "WSMTest",
+                  "0"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 2
+            }
+          }
+        ]
+      },
+      {
+        "u": false,
+        "mes": "mock reply #129 to: dragon gro",
+        "w": {
+          "v": 1,
+          "d": {
+            "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+            "round": 1,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 2
+          }
+        },
+        "sid": 0,
+        "si": [
+          {
+            "v": 1,
+            "d": {
+              "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+              "round": 1,
+              "inj": [
+                [
+                  "WSMTest",
+                  "0"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "E13.group_next_round_cooled",
+    "pass": true,
+    "info": 2
+  }
+]

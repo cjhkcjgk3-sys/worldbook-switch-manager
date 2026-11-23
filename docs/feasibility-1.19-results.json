@@ -1,0 +1,1267 @@
+{
+  "P1.stream.saved_ai_extra": {
+    "pass": true,
+    "info": [
+      {
+        "i": 0,
+        "u": false,
+        "mes": "*You wake with a sta",
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "i": 1,
+        "u": true,
+        "mes": "hello dragon one",
+        "u2": 1
+      },
+      {
+        "i": 2,
+        "u": false,
+        "mes": "mock reply #18 to: h",
+        "sid": 0,
+        "p": 1,
+        "si": [
+          1
+        ]
+      }
+    ]
+  },
+  "P1.stream.saved_swipe_info_extra": {
+    "pass": true
+  },
+  "P1.stream.saved_user_extra": {
+    "pass": true
+  },
+  "P2.nonstream.saved_ai_extra": {
+    "pass": true,
+    "info": [
+      {
+        "i": 0,
+        "u": false,
+        "mes": "*You wake with a sta",
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "i": 1,
+        "u": true,
+        "mes": "hello dragon one",
+        "u2": 1
+      },
+      {
+        "i": 2,
+        "u": false,
+        "mes": "mock reply #18 to: h",
+        "sid": 0,
+        "p": 1,
+        "si": [
+          1
+        ]
+      },
+      {
+        "i": 3,
+        "u": true,
+        "mes": "hello castle two",
+        "u2": 2
+      },
+      {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #19 to: h",
+        "sid": 0,
+        "p": 2,
+        "si": [
+          2
+        ]
+      }
+    ]
+  },
+  "P2.nonstream.saved_swipe_info": {
+    "pass": true
+  },
+  "P2.nonstream.saved_user_extra": {
+    "pass": true
+  },
+  "P3.newswipe.mem": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #20 to: h",
+      "sid": 1,
+      "p": 3,
+      "si": [
+        2,
+        3
+      ]
+    }
+  },
+  "P3.newswipe.clearedInherited": {
+    "pass": true,
+    "info": [
+      [
+        "probe:clearInherited",
+        1,
+        2
+      ],
+      [
+        "probe:wrote",
+        4,
+        3,
+        1
+      ]
+    ]
+  },
+  "P3.newswipe.file": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #20 to: h",
+      "sid": 1,
+      "p": 3,
+      "si": [
+        2,
+        3
+      ]
+    }
+  },
+  "P3.swipeLeft.extra_follows": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #19 to: h",
+      "sid": 0,
+      "p": 2,
+      "si": [
+        2,
+        3
+      ]
+    }
+  },
+  "P3.swipeLeft.file": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #19 to: h",
+      "sid": 0,
+      "p": 2,
+      "si": [
+        2,
+        3
+      ]
+    }
+  },
+  "P3.swipeRight.extra_follows": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #20 to: h",
+      "sid": 1,
+      "p": 3,
+      "si": [
+        2,
+        3
+      ]
+    }
+  },
+  "P4.newswipe.nonstream": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #21 to: h",
+      "sid": 2,
+      "p": 4,
+      "si": [
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "P4.delswipe.extra_matches_displayed": {
+    "pass": true,
+    "info": {
+      "L": {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #20 to: h",
+        "sid": 1,
+        "p": 3,
+        "si": [
+          2,
+          3
+        ]
+      },
+      "e": [
+        [
+          "MESSAGE_SWIPED",
+          4,
+          null
+        ],
+        [
+          "GENERATION_STARTED",
+          "swipe",
+          "[obj]",
+          false,
+          null
+        ],
+        [
+          "probe:clearInherited",
+          2,
+          3
+        ],
+        [
+          "GENERATION_AFTER_COMMANDS",
+          "swipe",
+          "[obj]",
+          false,
+          null
+        ],
+        [
+          "WORLDINFO_ENTRIES_LOADED",
+          "[obj]",
+          null
+        ],
+        [
+          "WORLD_INFO_ACTIVATED",
+          "[arr 3]",
+          null
+        ],
+        [
+          "GENERATE_AFTER_DATA",
+          "[obj]",
+          false,
+          null
+        ],
+        [
+          "CHAT_COMPLETION_SETTINGS_READY",
+          {
+            "type": "swipe"
+          },
+          null
+        ],
+        [
+          "MESSAGE_RECEIVED",
+          4,
+          "swipe",
+          null
+        ],
+        [
+          "probe:wrote",
+          4,
+          4,
+          2
+        ],
+        [
+          "GENERATION_ENDED",
+          5,
+          null
+        ],
+        [
+          "GENERATION_STARTED",
+          "normal",
+          "[obj]",
+          true,
+          null
+        ],
+        [
+          "GENERATION_AFTER_COMMANDS",
+          "normal",
+          "[obj]",
+          true,
+          null
+        ],
+        [
+          "WORLDINFO_ENTRIES_LOADED",
+          "[obj]",
+          null
+        ],
+        [
+          "MESSAGE_SWIPE_DELETED",
+          "[obj]",
+          null
+        ],
+        [
+          "GENERATE_AFTER_DATA",
+          "[obj]",
+          true,
+          null
+        ],
+        [
+          "MESSAGE_SWIPED",
+          4,
+          null
+        ]
+      ]
+    }
+  },
+  "P4.delswipe.file": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #20 to: h",
+      "sid": 1,
+      "p": 3,
+      "si": [
+        2,
+        3
+      ]
+    }
+  },
+  "P5.regenerate.fresh_extra": {
+    "pass": true,
+    "info": {
+      "L": {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #22 to: h",
+        "sid": 0,
+        "p": 5,
+        "si": [
+          5
+        ]
+      },
+      "e": [
+        [
+          "GENERATION_STARTED",
+          "regenerate",
+          "[obj]",
+          false,
+          null
+        ],
+        [
+          "GENERATION_AFTER_COMMANDS",
+          "regenerate",
+          "[obj]",
+          false,
+          null
+        ],
+        [
+          "MESSAGE_DELETED",
+          4,
+          null
+        ],
+        [
+          "WORLDINFO_ENTRIES_LOADED",
+          "[obj]",
+          null
+        ],
+        [
+          "WORLD_INFO_ACTIVATED",
+          "[arr 3]",
+          null
+        ],
+        [
+          "GENERATE_AFTER_DATA",
+          "[obj]",
+          false,
+          null
+        ],
+        [
+          "CHAT_COMPLETION_SETTINGS_READY",
+          {
+            "type": "regenerate"
+          },
+          null
+        ],
+        [
+          "MESSAGE_RECEIVED",
+          4,
+          "normal",
+          null
+        ],
+        [
+          "probe:wrote",
+          4,
+          5,
+          null
+        ],
+        [
+          "GENERATION_ENDED",
+          5,
+          null
+        ],
+        [
+          "GENERATION_STARTED",
+          "normal",
+          "[obj]",
+          true,
+          null
+        ],
+        [
+          "GENERATION_AFTER_COMMANDS",
+          "normal",
+          "[obj]",
+          true,
+          null
+        ],
+        [
+          "WORLDINFO_ENTRIES_LOADED",
+          "[obj]",
+          null
+        ]
+      ]
+    }
+  },
+  "P5.continue.received": {
+    "pass": true,
+    "info": {
+      "L": {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #22 to: h",
+        "sid": 0,
+        "p": 6,
+        "si": [
+          6
+        ]
+      },
+      "typeEv": [
+        [
+          "MESSAGE_RECEIVED",
+          4,
+          "continue",
+          {
+            "fin": true,
+            "stop": false,
+            "ab": false
+          }
+        ]
+      ],
+      "dateChanged": true
+    }
+  },
+  "P5.continue.file": {
+    "pass": true,
+    "info": {
+      "i": 4,
+      "u": false,
+      "mes": "mock reply #22 to: h",
+      "sid": 0,
+      "p": 6,
+      "si": [
+        6
+      ]
+    }
+  },
+  "P6.tool.stream.final_reply_has_extra": {
+    "pass": true,
+    "info": {
+      "tail": [
+        {
+          "i": 4,
+          "u": false,
+          "mes": "mock reply #22 to: h",
+          "sid": 0,
+          "p": 6,
+          "si": [
+            6
+          ]
+        },
+        {
+          "i": 5,
+          "u": true,
+          "sys": false,
+          "mes": "MOCKTOOL dragon true",
+          "u2": 7
+        },
+        {
+          "i": 6,
+          "u": false,
+          "sys": true,
+          "mes": "<details><summary>To"
+        },
+        {
+          "i": 7,
+          "u": false,
+          "mes": "mock reply #25 to: M",
+          "sid": 0,
+          "p": 7,
+          "si": [
+            7
+          ]
+        }
+      ],
+      "events": [
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "MESSAGE_SENT:5",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 3]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "MESSAGE_DELETED:6",
+        "TOOL_CALLS_PERFORMED:\"[arr 1]\"",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 2]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "GENERATION_ENDED:8",
+        "MESSAGE_RECEIVED:7",
+        "probe:wrote:7",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\""
+      ]
+    }
+  },
+  "P6.tool.stream.file": {
+    "pass": true,
+    "info": [
+      {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #22 to: h",
+        "sid": 0,
+        "p": 6,
+        "si": [
+          6
+        ]
+      },
+      {
+        "i": 5,
+        "u": true,
+        "mes": "MOCKTOOL dragon true",
+        "u2": 7
+      },
+      {
+        "i": 6,
+        "u": false,
+        "mes": "<details><summary>To"
+      },
+      {
+        "i": 7,
+        "u": false,
+        "mes": "mock reply #25 to: M",
+        "sid": 0,
+        "p": 7,
+        "si": [
+          7
+        ]
+      }
+    ]
+  },
+  "P6.tool.nonstream.final_reply_has_extra": {
+    "pass": true,
+    "info": {
+      "tail": [
+        {
+          "i": 7,
+          "u": false,
+          "mes": "mock reply #25 to: M",
+          "sid": 0,
+          "p": 7,
+          "si": [
+            7
+          ]
+        },
+        {
+          "i": 8,
+          "u": true,
+          "sys": false,
+          "mes": "MOCKTOOL dragon fals",
+          "u2": 8
+        },
+        {
+          "i": 9,
+          "u": false,
+          "mes": "mock reply #26 to: M",
+          "sid": 0,
+          "p": 8,
+          "si": [
+            8
+          ]
+        }
+      ],
+      "events": [
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "MESSAGE_SENT:8",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 2]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "MESSAGE_RECEIVED:9",
+        "probe:wrote:9",
+        "GENERATION_ENDED:10",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\""
+      ]
+    }
+  },
+  "P6.tool.nonstream.file": {
+    "pass": true,
+    "info": [
+      {
+        "i": 6,
+        "u": false,
+        "mes": "<details><summary>To"
+      },
+      {
+        "i": 7,
+        "u": false,
+        "mes": "mock reply #25 to: M",
+        "sid": 0,
+        "p": 7,
+        "si": [
+          7
+        ]
+      },
+      {
+        "i": 8,
+        "u": true,
+        "mes": "MOCKTOOL dragon fals",
+        "u2": 8
+      },
+      {
+        "i": 9,
+        "u": false,
+        "mes": "mock reply #26 to: M",
+        "sid": 0,
+        "p": 8,
+        "si": [
+          8
+        ]
+      }
+    ]
+  },
+  "P7.quiet.ccsr_type_quiet": {
+    "pass": true,
+    "info": [
+      "GENERATION_STARTED:\"quiet\"",
+      "GENERATION_AFTER_COMMANDS:\"quiet\"",
+      "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+      "WORLD_INFO_ACTIVATED:\"[arr 2]\"",
+      "GENERATE_AFTER_DATA:\"[obj]\"",
+      "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"quiet\"}",
+      "GENERATION_ENDED:10"
+    ]
+  },
+  "P7.quietInReceived.ended_fires_before_our_received": {
+    "pass": true,
+    "info": {
+      "iQS": 8,
+      "iEnd": 15,
+      "iWrote": 17
+    }
+  },
+  "P8.stop.events": {
+    "pass": true,
+    "info": [
+      "GENERATION_STARTED:[\"normal\",\"[obj]\",false,null]",
+      "GENERATION_AFTER_COMMANDS:[\"normal\",\"[obj]\",false,null]",
+      "MESSAGE_SENT:[12,null]",
+      "WORLDINFO_ENTRIES_LOADED:[\"[obj]\",null]",
+      "WORLD_INFO_ACTIVATED:[\"[arr 1]\",null]",
+      "GENERATE_AFTER_DATA:[\"[obj]\",false,null]",
+      "CHAT_COMPLETION_SETTINGS_READY:[{\"type\":\"normal\"},{\"fin\":false,\"stop\":false,\"ab\":false}]",
+      "GENERATION_STOPPED:[{\"fin\":true,\"stop\":false,\"ab\":true}]",
+      "GENERATION_ENDED:[14,{\"fin\":true,\"stop\":false,\"ab\":true}]",
+      "MESSAGE_RECEIVED:[13,\"normal\",{\"fin\":true,\"stop\":false,\"ab\":true}]",
+      "probe:wrote:[13,10,0]",
+      "GENERATION_STARTED:[\"normal\",\"[obj]\",true,null]",
+      "GENERATION_AFTER_COMMANDS:[\"normal\",\"[obj]\",true,null]",
+      "WORLDINFO_ENTRIES_LOADED:[\"[obj]\",null]",
+      "GENERATE_AFTER_DATA:[\"[obj]\",true,null]"
+    ]
+  },
+  "P8.stop.partial_message_state": {
+    "pass": true,
+    "info": {
+      "L": {
+        "i": 13,
+        "u": false,
+        "mes": "slow slow slow slow ",
+        "sid": 0,
+        "p": 10,
+        "si": [
+          10
+        ]
+      },
+      "tag": {
+        "seq": 10,
+        "swipe": 0,
+        "head": "slow slow slow slow slow",
+        "type": "normal",
+        "stopped": {
+          "fin": true,
+          "stop": false,
+          "ab": true
+        }
+      }
+    }
+  },
+  "P9.fail.true": {
+    "pass": true,
+    "info": {
+      "tail": [
+        {
+          "i": 13,
+          "u": false,
+          "mes": "slow slow slow slow ",
+          "sid": 0,
+          "p": 10,
+          "si": [
+            10
+          ]
+        },
+        {
+          "i": 14,
+          "u": true,
+          "sys": false,
+          "mes": "MOCKFAIL true"
+        }
+      ],
+      "events": [
+        "GENERATION_STARTED:[\"normal\",\"[obj]\",false,null]",
+        "GENERATION_AFTER_COMMANDS:[\"normal\",\"[obj]\",false,null]",
+        "MESSAGE_SENT:[14,null]",
+        "WORLDINFO_ENTRIES_LOADED:[\"[obj]\",null]",
+        "WORLD_INFO_ACTIVATED:[\"[arr 1]\",null]",
+        "GENERATE_AFTER_DATA:[\"[obj]\",false,null]",
+        "CHAT_COMPLETION_SETTINGS_READY:[{\"type\":\"normal\"},{\"fin\":false,\"stop\":false,\"ab\":false}]",
+        "GENERATION_ENDED:[15,null]"
+      ]
+    }
+  },
+  "P9.fail.false": {
+    "pass": true,
+    "info": {
+      "tail": [
+        {
+          "i": 14,
+          "u": true,
+          "sys": false,
+          "mes": "MOCKFAIL true"
+        },
+        {
+          "i": 15,
+          "u": true,
+          "sys": false,
+          "mes": "MOCKFAIL false"
+        }
+      ],
+      "events": [
+        "GENERATION_STARTED:[\"normal\",\"[obj]\",false,null]",
+        "GENERATION_AFTER_COMMANDS:[\"normal\",\"[obj]\",false,null]",
+        "MESSAGE_SENT:[15,null]",
+        "WORLDINFO_ENTRIES_LOADED:[\"[obj]\",null]",
+        "WORLD_INFO_ACTIVATED:[\"[arr 1]\",null]",
+        "GENERATE_AFTER_DATA:[\"[obj]\",false,null]",
+        "CHAT_COMPLETION_SETTINGS_READY:[{\"type\":\"normal\"},null]",
+        "GENERATION_ENDED:[16,null]"
+      ]
+    }
+  },
+  "P10.edit.keeps_extra": {
+    "pass": true,
+    "info": {
+      "ev": [
+        "MESSAGE_UPDATED",
+        "MESSAGE_EDITED",
+        "MESSAGE_UPDATED",
+        "GENERATION_STARTED",
+        "GENERATION_AFTER_COMMANDS",
+        "WORLDINFO_ENTRIES_LOADED",
+        "GENERATE_AFTER_DATA"
+      ]
+    }
+  },
+  "P10.useredit.keeps_extra": {
+    "pass": true
+  },
+  "P11.hide.keeps_extra_noevent": {
+    "pass": true,
+    "info": {
+      "events": [
+        "MESSAGE_EDITED",
+        "MESSAGE_UPDATED",
+        "GENERATION_STARTED",
+        "GENERATION_AFTER_COMMANDS",
+        "WORLDINFO_ENTRIES_LOADED",
+        "GENERATE_AFTER_DATA"
+      ]
+    }
+  },
+  "P12.metadata.draft_saved": {
+    "pass": true
+  },
+  "P13.branch.slice_and_extra": {
+    "pass": true,
+    "info": [
+      {
+        "i": 0,
+        "u": false,
+        "mes": "*You wake with a sta",
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "i": 1,
+        "u": true,
+        "mes": "hello dragon one",
+        "u2": 1
+      },
+      {
+        "i": 2,
+        "u": false,
+        "mes": "mock reply #18 to: h",
+        "sid": 0,
+        "p": 1,
+        "si": [
+          1
+        ]
+      },
+      {
+        "i": 3,
+        "u": true,
+        "mes": "hello castle two",
+        "u2": 2
+      },
+      {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #22 to: h",
+        "sid": 0,
+        "p": 6,
+        "si": [
+          6
+        ]
+      }
+    ]
+  },
+  "P13.branch.metadata_copied": {
+    "pass": true,
+    "info": [
+      "integrity",
+      "note_prompt",
+      "note_interval",
+      "note_position",
+      "note_depth",
+      "note_role",
+      "timedWorldInfo",
+      "tainted",
+      "lastInContextMessageId",
+      "wsm_draft",
+      "main_chat"
+    ]
+  },
+  "P13.branch_from_swipe": {
+    "pass": false,
+    "info": "no swipe message found"
+  },
+  "P13.checkpoint.extra": {
+    "pass": true,
+    "info": [
+      {
+        "i": 0,
+        "u": false,
+        "mes": "*You wake with a sta",
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "i": 1,
+        "u": true,
+        "mes": "hello dragon one",
+        "u2": 1
+      },
+      {
+        "i": 2,
+        "u": false,
+        "mes": "mock reply #18 to: h",
+        "sid": 0,
+        "p": 1,
+        "si": [
+          1
+        ]
+      }
+    ]
+  },
+  "P14.open_branch.extra_in_memory": {
+    "pass": true,
+    "info": [
+      {
+        "i": 0,
+        "u": false,
+        "sys": false,
+        "mes": "*You wake with a sta",
+        "sid": 0,
+        "si": [
+          null
+        ]
+      },
+      {
+        "i": 1,
+        "u": true,
+        "sys": false,
+        "mes": "hello dragon one",
+        "u2": 1
+      },
+      {
+        "i": 2,
+        "u": false,
+        "mes": "mock reply #18 to: h",
+        "sid": 0,
+        "p": 1,
+        "si": [
+          1
+        ]
+      },
+      {
+        "i": 3,
+        "u": true,
+        "sys": false,
+        "mes": "hello castle two",
+        "u2": 2
+      },
+      {
+        "i": 4,
+        "u": false,
+        "mes": "mock reply #22 to: h",
+        "sid": 0,
+        "p": 6,
+        "si": [
+          6
+        ]
+      }
+    ]
+  },
+  "P14.back_to_main.extra_in_memory": {
+    "pass": true
+  },
+  "P15.refresh.extra_restored": {
+    "pass": true,
+    "info": {
+      "cur": "Seraphina - 2026-11-23@13h25m51s165ms",
+      "mainId": "Seraphina - 2026-11-23@13h25m51s165ms"
+    }
+  },
+  "P16.cut_middle.others_intact": {
+    "pass": true,
+    "info": {
+      "e": [
+        "MESSAGE_DELETED:15",
+        "GENERATION_STARTED:normal",
+        "GENERATION_AFTER_COMMANDS:normal",
+        "WORLDINFO_ENTRIES_LOADED:[obj]",
+        "GENERATE_AFTER_DATA:[obj]"
+      ]
+    }
+  },
+  "P16.del_tail": {
+    "pass": true,
+    "info": {
+      "e": [
+        "MESSAGE_DELETED:14",
+        "MESSAGE_DELETED:13",
+        "GENERATION_STARTED:normal",
+        "GENERATION_AFTER_COMMANDS:normal",
+        "WORLDINFO_ENTRIES_LOADED:[obj]",
+        "GENERATE_AFTER_DATA:[obj]"
+      ]
+    }
+  },
+  "P16.batch_delete_to_end": {
+    "pass": true,
+    "info": {
+      "len": 4,
+      "e": [
+        "MESSAGE_DELETED:4",
+        "GENERATION_STARTED:normal",
+        "GENERATION_AFTER_COMMANDS:normal",
+        "WORLDINFO_ENTRIES_LOADED:[obj]",
+        "GENERATE_AFTER_DATA:[obj]"
+      ]
+    }
+  },
+  "P18.group.nonstream": {
+    "pass": true,
+    "info": {
+      "M": [
+        {
+          "i": 0,
+          "u": false,
+          "name": "Seraphina",
+          "mes": "*You wake with a sta"
+        },
+        {
+          "i": 1,
+          "u": false,
+          "name": "Probebot",
+          "mes": "Hi from probebot"
+        },
+        {
+          "i": 2,
+          "u": true,
+          "name": "User",
+          "mes": "hello group false",
+          "u2": 1
+        },
+        {
+          "i": 3,
+          "u": false,
+          "name": "Seraphina",
+          "mes": "mock reply #38 to: h",
+          "p": 1
+        },
+        {
+          "i": 4,
+          "u": false,
+          "name": "Probebot",
+          "mes": "mock reply #39 to: h",
+          "p": 2
+        }
+      ],
+      "saved": [
+        [
+          null,
+          null
+        ],
+        [
+          false,
+          null
+        ],
+        [
+          false,
+          null
+        ],
+        [
+          true,
+          1
+        ],
+        [
+          false,
+          1
+        ],
+        [
+          false,
+          2
+        ]
+      ],
+      "events": [
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "MESSAGE_SENT:2",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 1]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "MESSAGE_RECEIVED:3",
+        "probe:wrote:3",
+        "GENERATION_ENDED:4",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 1]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "MESSAGE_RECEIVED:4",
+        "probe:wrote:4",
+        "GENERATION_ENDED:5"
+      ]
+    }
+  },
+  "P18.group.stream": {
+    "pass": true,
+    "info": {
+      "M": [
+        {
+          "i": 0,
+          "u": false,
+          "name": "Seraphina",
+          "mes": "*You wake with a sta"
+        },
+        {
+          "i": 1,
+          "u": false,
+          "name": "Probebot",
+          "mes": "Hi from probebot"
+        },
+        {
+          "i": 2,
+          "u": true,
+          "name": "User",
+          "mes": "hello group false",
+          "u2": 1
+        },
+        {
+          "i": 3,
+          "u": false,
+          "name": "Seraphina",
+          "mes": "mock reply #38 to: h",
+          "p": 1
+        },
+        {
+          "i": 4,
+          "u": false,
+          "name": "Probebot",
+          "mes": "mock reply #39 to: h",
+          "p": 2
+        },
+        {
+          "i": 5,
+          "u": true,
+          "name": "User",
+          "mes": "hello group true",
+          "u2": 3
+        },
+        {
+          "i": 6,
+          "u": false,
+          "name": "Seraphina",
+          "mes": "mock reply #40 to: h",
+          "p": 3
+        },
+        {
+          "i": 7,
+          "u": false,
+          "name": "Probebot",
+          "mes": "mock reply #41 to: h",
+          "p": 4
+        }
+      ],
+      "saved": [
+        [
+          null,
+          null
+        ],
+        [
+          false,
+          null
+        ],
+        [
+          false,
+          null
+        ],
+        [
+          true,
+          1
+        ],
+        [
+          false,
+          1
+        ],
+        [
+          false,
+          2
+        ],
+        [
+          true,
+          3
+        ],
+        [
+          false,
+          3
+        ],
+        [
+          false,
+          4
+        ]
+      ],
+      "events": [
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "MESSAGE_SENT:5",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 1]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "GENERATION_ENDED:7",
+        "MESSAGE_RECEIVED:6",
+        "probe:wrote:6",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 1]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "GENERATION_ENDED:8",
+        "MESSAGE_RECEIVED:7",
+        "probe:wrote:7"
+      ]
+    }
+  },
+  "P6.tool.nonstream.real": {
+    "pass": true,
+    "info": {
+      "M": [
+        [
+          false,
+          false,
+          "*You wake with a start, r",
+          null
+        ],
+        [
+          true,
+          false,
+          "MOCKTOOL nonstream",
+          null
+        ],
+        [
+          false,
+          true,
+          "<details><summary>Tool ca",
+          null
+        ],
+        [
+          false,
+          null,
+          "mock reply #2 to: MOCKTOO",
+          2
+        ]
+      ],
+      "e": [
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "MESSAGE_SENT:1",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 5]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "MESSAGE_RECEIVED:2",
+        "probe:wrote:2",
+        "MESSAGE_DELETED:2",
+        "TOOL_CALLS_PERFORMED:\"[arr 1]\"",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "WORLD_INFO_ACTIVATED:\"[arr 1]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\"",
+        "CHAT_COMPLETION_SETTINGS_READY:{\"type\":\"normal\"}",
+        "MESSAGE_RECEIVED:3",
+        "probe:wrote:3",
+        "GENERATION_ENDED:4",
+        "GENERATION_STARTED:\"normal\"",
+        "GENERATION_AFTER_COMMANDS:\"normal\"",
+        "WORLDINFO_ENTRIES_LOADED:\"[obj]\"",
+        "GENERATE_AFTER_DATA:\"[obj]\""
+      ]
+    }
+  }
+}

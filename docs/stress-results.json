@@ -1,10 +1,10 @@
 {
-  "environment": "Node v22.12.0; isolated deterministic event tests, no paid model calls",
+  "environment": "Node v24.22.1; isolated deterministic event tests, no paid model calls",
   "results": [
     {
       "name": "100000 rounds plus 100000 regenerations",
       "result": "PASS",
-      "elapsedMs": 250,
+      "elapsedMs": 140,
       "rounds": 100000,
       "regenerations": 100000,
       "retainedTurnRecords": 1,
@@ -13,25 +13,35 @@
     {
       "name": "5000 enable/disable cycles",
       "result": "PASS",
-      "elapsedMs": 130,
+      "elapsedMs": 50,
       "cycles": 5000,
       "remainingListeners": 0,
       "metadataUnchanged": true
     },
     {
+      "name": "40000-message chat, 10000 entries, 50 scans",
+      "result": "PASS",
+      "elapsedMs": 574,
+      "messages": 40001,
+      "entries": 10000,
+      "scans": 50,
+      "p50Ms": 1.89,
+      "p95Ms": 4.7
+    },
+    {
       "name": "10000 entries across 20 books, 200 scans",
       "result": "PASS",
-      "elapsedMs": 1675,
+      "elapsedMs": 574,
       "entries": 10000,
       "scans": 200,
-      "p50Ms": 6.67,
-      "p95Ms": 16.71,
+      "p50Ms": 1.8,
+      "p95Ms": 3.16,
       "originalEntriesUnchanged": true
     },
     {
       "name": "2000 concurrent refresh notifications",
       "result": "PASS",
-      "elapsedMs": 26,
+      "elapsedMs": 11,
       "notifications": 2000,
       "actualLoads": 1
     }

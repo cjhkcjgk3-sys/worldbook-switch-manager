@@ -65,14 +65,14 @@
         "expandedEntryRows": 200,
         "manualFrozenEntries": 10000,
         "repeatRenders": 200,
-        "initialRenderMs": 19,
-        "repeatRenderTotalMs": 3564,
-        "retainedHeapGrowthBytes": 73192
+        "initialRenderMs": 14,
+        "repeatRenderTotalMs": 1551,
+        "retainedHeapGrowthBytes": 44072
       },
       "checks": [
         "lazy and paged rendering",
         "bulk scope and manual selection across all entries",
-        "session switch clears manual state and picks",
+        "switching to another chat shows that chat's (empty) manual state and clears picks",
         "no horizontal overflow or browser exceptions",
         "bounded retained heap after garbage collection"
       ]

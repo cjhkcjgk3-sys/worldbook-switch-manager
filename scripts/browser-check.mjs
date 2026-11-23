@@ -101,11 +101,11 @@ try {
     assert.ok(after-before<20*1024*1024,'Repeated rendering retained more than 20 MiB');
     assert.equal(await page.locator('.wsm-entry').count(),200);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-    await page.evaluate(()=>window.harness.events.emit('CHAT_CHANGED'));
+    await page.evaluate(()=>{const h=window.harness;h.ctx.chat=[];h.ctx.chatMetadata={};return h.events.emit('CHAT_CHANGED');});
     assert.equal(await page.evaluate(()=>Object.keys(window.harness.manager.state.manual).length),0);
     assert.match(await page.locator('.wsm-manual').innerText(),/已选 0 个/);
     assert.deepEqual(stressErrors,[]);
-    results.push({viewport:{width:390,height:844},result:'PASS',stress:{entries:10000,books:20,initialRenderedEntryRows:0,expandedEntryRows:200,manualFrozenEntries:10000,repeatRenders:200,initialRenderMs:Math.round(loadMs),repeatRenderTotalMs:Math.round(repeatMs),retainedHeapGrowthBytes:after-before},checks:['lazy and paged rendering','bulk scope and manual selection across all entries','session switch clears manual state and picks','no horizontal overflow or browser exceptions','bounded retained heap after garbage collection']});
+    results.push({viewport:{width:390,height:844},result:'PASS',stress:{entries:10000,books:20,initialRenderedEntryRows:0,expandedEntryRows:200,manualFrozenEntries:10000,repeatRenders:200,initialRenderMs:Math.round(loadMs),repeatRenderTotalMs:Math.round(repeatMs),retainedHeapGrowthBytes:after-before},checks:['lazy and paged rendering','bulk scope and manual selection across all entries','switching to another chat shows that chat\'s (empty) manual state and clears picks','no horizontal overflow or browser exceptions','bounded retained heap after garbage collection']});
     await page.close();
     await writeFile(resolve(root, 'docs/browser-results.json'), JSON.stringify({ environment: 'Isolated mock host, Chromium; not live SillyTavern or physical Android', results }, null, 2) + '\n');
     console.log(JSON.stringify(results, null, 2));

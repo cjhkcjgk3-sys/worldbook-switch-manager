@@ -31,14 +31,14 @@ class Events {
 }
 const names=['WORLDINFO_ENTRIES_LOADED','WORLD_INFO_ACTIVATED','GENERATE_AFTER_DATA','CHAT_COMPLETION_SETTINGS_READY','GENERATION_STARTED','GENERATION_ENDED','GENERATION_STOPPED','MESSAGE_RECEIVED','CHAT_CHANGED','MESSAGE_EDITED','MESSAGE_UPDATED','MESSAGE_DELETED','MESSAGE_SWIPED','WORLDINFO_SETTINGS_UPDATED','WORLDINFO_UPDATED','CHARACTER_EDITED','PERSONA_CHANGED'];
 const events=new Events();
-const metadata=Object.freeze({world_info:'large'});
+const metadata={world_info:'large'};
 const ctx={chat:[],chatMetadata:metadata,extensionSettings:{},eventTypes:Object.fromEntries(names.map(n=>[n,n])),eventSource:events,
     getCurrentChatId:()=> 'stress',saveSettingsDebounced(){},loadWorldInfo(){},characters:[]};
 const manager=new Manager(()=>ctx,{list:async()=>({entries:[],books:[]}),render:e=>e.content});
 start=performance.now();
 for(let i=0;i<5000;i++){manager.start();manager.start();assert.equal([...events.events.values()].flat().length,names.length);manager.stop();}
 assert.equal([...events.events.values()].flat().length,0);
-record('5000 enable/disable cycles',start,{cycles:5000,remainingListeners:0,metadataUnchanged:ctx.chatMetadata===metadata});
+record('5000 enable/disable cycles',start,{cycles:5000,remainingListeners:0,metadataUnchanged:JSON.stringify(ctx.chatMetadata)==='{"world_info":"large"}'});
 
 manager.start();await manager.refresh();
 const entries=Array.from({length:10000},(_,i)=>({world:`book-${Math.floor(i/500)}`,uid:i%500,disable:false,content:`entry-${i}`}));
@@ -54,6 +54,17 @@ for(let i=0;i<200;i++){
 }
 assert.equal(entries.some(e=>e.disable),false);
 times.sort((a,b)=>a-b);
+// Scans on a long chat: state is derived from the last round snapshot.
+const { writeStart, writeDelta } = await import('../timeline.js');
+for(let i=0;i<20000;i++){ctx.chat.push({is_user:true,mes:'u',extra:{}},{is_user:false,mes:'a',extra:{},swipes:['a'],swipe_id:0,swipe_info:[{extra:{}}]});}
+writeStart(ctx.chat[39998],{id:'s',round:20000,auto:{},manual:{}});
+writeDelta(ctx.chat[39999],{anchor:'s',round:20000,inj:[['book-0','7']],delay:0,cooldown:3});
+manager.touch();
+const longTimes=[];
+for(let i=0;i<50;i++){ctx.chat.push({is_user:true,mes:'u',extra:{}});manager.touch();const payload={globalLore:entries.map(e=>({...e}))};const t=performance.now();manager.filter(payload);longTimes.push(performance.now()-t);ctx.chat.pop();
+    assert.equal(payload.globalLore[7].disable,true);}
+longTimes.sort((a,b)=>a-b);
+record('40000-message chat, 10000 entries, 50 scans',start,{messages:40001,entries:10000,scans:50,p50Ms:+longTimes[25].toFixed(2),p95Ms:+longTimes[47].toFixed(2)});
 record('10000 entries across 20 books, 200 scans',start,{entries:10000,scans:200,p50Ms:+times[100].toFixed(2),p95Ms:+times[190].toFixed(2),originalEntriesUnchanged:true});
 
 start=performance.now();let loads=0;
