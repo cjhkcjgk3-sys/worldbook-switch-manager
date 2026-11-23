@@ -5,19 +5,44 @@
 <title>世界书自动开关管理器 · 独立界面测试</title>
 <link rel="stylesheet" href="../style.css">
 <style>
-:root { color-scheme: dark; --SmartThemeBodyColor: #e6e2dc; --SmartThemeBorderColor: #575653; --SmartThemeQuoteColor: #a7c7b0; }
-body { margin: 0; padding: 16px; background: #202321; font: 15px/1.5 system-ui, sans-serif; box-sizing: border-box; }
-main { max-width: 520px; margin: auto; }
+:root { color-scheme: dark; --SmartThemeBodyColor: #e6e2dc; --SmartThemeBorderColor: #575653; --SmartThemeQuoteColor: #a7c7b0; --SmartThemeBlurTintColor: #252825; }
+body { margin: 0; padding: 16px; background: #202321; color: var(--SmartThemeBodyColor); font: 15px/1.5 system-ui, sans-serif; box-sizing: border-box; }
+main { max-width: 620px; margin: auto; }
 input, select, button { font: inherit; color: inherit; background: #303630; border: 1px solid #676e66; border-radius: 5px; padding: 8px; }
 input[type=checkbox] { accent-color: #a7c7b0; }
 .menu_button { cursor: pointer; }
 h1 { font-size: 18px; }
+/* Mirrors SillyTavern 1.19.0 popup.css baseline constraints to validate .popup.wsm-dialog overrides. */
+dialog.popup {
+    width: 500px;
+    text-align: center;
+    box-shadow: 0 0 14px rgba(0, 0, 0, .7);
+    border: 1px solid var(--SmartThemeBorderColor);
+    padding: 4px 14px;
+    background-color: var(--SmartThemeBlurTintColor);
+    color: var(--SmartThemeBodyColor);
+    border-radius: 10px;
+    display: none;
+    flex-direction: column;
+    max-height: calc(100dvh - 2em);
+    max-width: calc(100dvw - 2em);
+    min-height: fit-content;
+    overflow: visible;
+    margin: auto;
+}
+dialog.popup[open] { display: flex; }
+dialog.popup::backdrop { background: rgba(0, 0, 0, .55); }
+.popup .popup-body { display: flex; flex-direction: column; overflow: hidden; width: min(100%, 100vw); height: 100%; padding: 1px; }
+.popup .popup-content { margin-top: 10px; padding: 0 8px; overflow: hidden; flex-grow: 1; }
+.popup.vertical_scrolling_dialogue_popup .popup-content { overflow-y: auto; }
+.popup-controls { display: flex; justify-content: center; gap: 10px; padding: 6px 0; }
+.popup-button-ok { min-height: 36px; min-width: 72px; }
 </style>
 <main><h1>独立界面与回合测试</h1><p>这里使用模拟聊天，不连接模型和真实酒馆。</p><div id="extensionsMenu" aria-label="模拟魔术棒菜单"></div><div id="extensions_settings2"></div></main>
 <script type="module">
 import { Manager } from '../controller.js';
 import { createLauncher } from '../launcher.js';
-import { mountUI } from '../ui.js';
+import { mountUI, attachPopupResize } from '../ui.js';
 class Events {
     events = new Map();
     on(n, f) { this.events.set(n, [...(this.events.get(n) ?? []), f]); }
@@ -34,25 +59,85 @@ const entries = [
 ];
 const events = new Events();
 const ctx = { chat: [], chatMetadata: {}, extensionSettings: {}, characterId: 0, characters: [{ avatar: 'test.png' }], eventSource: events,
-    eventTypes: Object.fromEntries(names.map(n => [n, n])), getCurrentChatId: () => 'preview-chat', saveSettingsDebounced() {}, saveMetadata: async () => {}, loadWorldInfo: async () => ({ entries: {} }) };
-let ui;
+    eventTypes: Object.fromEntries(names.map(n => [n, n])), POPUP_TYPE: { TEXT: 1, CONFIRM: 2 },
+    getCurrentChatId: () => 'preview-chat', saveSettingsDebounced() {}, saveMetadata: async () => {}, loadWorldInfo: async () => ({ entries: {} }) };
+const inlineMode = new URLSearchParams(location.search).get('mode') === 'inline';
+let ui, uiHost, popupDlg, popupResize;
+let popupSize = null;
 const manager = new Manager(() => ctx, { list: async () => ({ books: ['原神综合世界书', '纯人物世界书'], entries }), render: e => e.content }, () => ui?.render());
-manager.start(); ui = mountUI(manager, document.querySelector('#extensions_settings2'));
-const launcher = createLauncher(document.querySelector('#extensionsMenu'), () => { window.harness.opened++; });
-window.harness = { manager, ctx, entries, events, launcher, opened: 0, async round({ regenerate = false } = {}) {
-    if (!regenerate) ctx.chat.push({ is_user: true, mes: '雷电将军、八重神子', send_date: ctx.chat.length });
-    await events.emit('GENERATION_STARTED', regenerate ? 'regenerate' : 'normal', {}, false);
-    const scan = { characterLore: structuredClone(entries), globalLore: [], personaLore: [], chatLore: [] };
-    await events.emit('WORLDINFO_ENTRIES_LOADED', scan);
-    const accepted = new Map(scan.characterLore.filter(e => !e.disable).map(e => [`${e.world}.${e.uid}`, e]));
-    await events.emit('WORLDINFO_SCAN_DONE', { state: { next: 0, loopCount: 1 }, activated: { entries: accepted } });
-    const active = [...accepted.values()];
-    await events.emit('WORLD_INFO_ACTIVATED', active);
-    await events.emit('GENERATE_AFTER_DATA', { prompt: active.map(e => e.content).join('\n') }, false);
-    ctx.chat.push({ is_user: false, mes: '完整 AI 回复', send_date: ctx.chat.length });
-    await events.emit('MESSAGE_RECEIVED', ctx.chat.length - 1, regenerate ? 'regenerate' : 'normal');
-    await events.emit('GENERATION_ENDED');
-    return active.map(e => e.comment);
-} };
+manager.hostVersion = '1.19.0';
+manager.start();
+
+function closePopup() {
+    if (!popupDlg) return;
+    popupResize?.destroy();
+    popupResize = undefined;
+    if (uiHost && ui?.root) uiHost.append(ui.root);
+    if (popupDlg.open) popupDlg.close();
+    popupDlg.remove();
+    popupDlg = undefined;
+}
+
+function openPopup() {
+    window.harness.opened++;
+    if (inlineMode) { ui.drawer.open = true; return; }
+    if (popupDlg) return;
+    const dlg = document.createElement('dialog');
+    dlg.className = 'popup vertical_scrolling_dialogue_popup';
+    const body = document.createElement('div');
+    body.className = 'popup-body';
+    const content = document.createElement('div');
+    content.className = 'popup-content';
+    const wrap = document.createElement('div');
+    wrap.className = 'wsm-popup';
+    wrap.append(ui.root);
+    content.append(wrap);
+    const controls = document.createElement('div');
+    controls.className = 'popup-controls';
+    const okBtn = document.createElement('button');
+    okBtn.type = 'button';
+    okBtn.className = 'popup-button-ok menu_button';
+    okBtn.textContent = '关闭';
+    okBtn.addEventListener('click', closePopup);
+    controls.append(okBtn);
+    body.append(content, controls);
+    dlg.append(body);
+    dlg.addEventListener('cancel', e => { e.preventDefault(); closePopup(); });
+    document.body.append(dlg);
+    popupDlg = dlg;
+    popupResize = attachPopupResize(dlg, { initialSize: popupSize, onSizeChange: s => { popupSize = s; } });
+    dlg.showModal();
+}
+
+if (inlineMode) {
+    ui = mountUI(manager, document.querySelector('#extensions_settings2'), { open: false, inPopup: false });
+} else {
+    uiHost = document.createElement('div');
+    uiHost.id = 'worldbook_switch_manager_storage';
+    uiHost.hidden = true;
+    document.body.append(uiHost);
+    ui = mountUI(manager, uiHost, { open: true, inPopup: true });
+}
+const launcher = createLauncher(document.querySelector('#extensionsMenu'), openPopup);
+
+window.harness = {
+    manager, ctx, entries, events, launcher, opened: 0,
+    openPopup, closePopup, getPopupSize: () => popupSize,
+    async round({ regenerate = false } = {}) {
+        if (!regenerate) ctx.chat.push({ is_user: true, mes: '雷电将军、八重神子', send_date: ctx.chat.length });
+        await events.emit('GENERATION_STARTED', regenerate ? 'regenerate' : 'normal', {}, false);
+        const scan = { characterLore: structuredClone(entries), globalLore: [], personaLore: [], chatLore: [] };
+        await events.emit('WORLDINFO_ENTRIES_LOADED', scan);
+        const accepted = new Map(scan.characterLore.filter(e => !e.disable).map(e => [`${e.world}.${e.uid}`, e]));
+        await events.emit('WORLDINFO_SCAN_DONE', { state: { next: 0, loopCount: 1 }, activated: { entries: accepted } });
+        const active = [...accepted.values()];
+        await events.emit('WORLD_INFO_ACTIVATED', active);
+        await events.emit('GENERATE_AFTER_DATA', { prompt: active.map(e => e.content).join('\n') }, false);
+        ctx.chat.push({ is_user: false, mes: '完整 AI 回复', send_date: ctx.chat.length });
+        await events.emit('MESSAGE_RECEIVED', ctx.chat.length - 1, regenerate ? 'regenerate' : 'normal');
+        await events.emit('GENERATION_ENDED');
+        return active.map(e => e.comment);
+    },
+};
 </script>
 </html>

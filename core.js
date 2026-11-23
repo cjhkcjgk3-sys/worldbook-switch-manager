@@ -1,6 +1,6 @@
 /** Pure cooldown and per-turn green-cap rules. A round is opened by an anchor message (normally a user message). */
 export const ID = 'worldbook_switch_manager';
-export const VERSION = '1.3.1';
+export const VERSION = '1.3.2';
 export const DEFAULTS = Object.freeze({ enabled: true, automatic: true, delay: 0, cooldown: 1, includeConstant: false, aiTurns: false, capEnabled: false, capLimit: 5, selection: {} });
 export const entryKey = (world, uid) => JSON.stringify([String(world), String(uid)]);
 export const parseKey = key => { try { const [world, uid] = JSON.parse(key); return { world, uid }; } catch { return null; } };

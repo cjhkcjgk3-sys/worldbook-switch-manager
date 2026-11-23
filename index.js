@@ -1,6 +1,6 @@
 /**
  * Entry point: mount the manager panel behind the main-page magic wand menu.
- * Clicking the wand item opens the panel in a host popup; closing the popup
+ * Clicking the wand item opens the panel in a resizable host popup; closing the popup
  * returns the same panel instance to a hidden host so its transient UI state
  * (search, expanded books, manual selection) survives between openings.
  */
@@ -8,9 +8,10 @@ import { supportedVersion, isCompatibleVersion } from './core.js';
 import { Manager } from './controller.js';
 import { createAdapter } from './host-adapter.js';
 import { createLauncher } from './launcher.js';
-import { mountUI } from './ui.js';
+import { mountUI, attachPopupResize } from './ui.js';
 
-let manager, ui, popup, launcher, uiHost, failurePanel;
+let manager, ui, popup, popupResize, launcher, uiHost, failurePanel;
+let popupSize = null;
 let boot = 0;
 let readyListener;
 
@@ -29,6 +30,8 @@ export function disable() {
     if (readyListener) ctx?.eventSource.removeListener(ctx.eventTypes.APP_READY, readyListener);
     readyListener = null;
     manager?.stop(); manager = undefined;
+    popupResize?.destroy(); popupResize = undefined;
+    popupSize = null;
     const openPopup = popup; popup = undefined;
     if (openPopup?.complete) {
         try { Promise.resolve(openPopup.complete(ctx?.POPUP_RESULT?.NEGATIVE ?? 0)).catch(() => {}); } catch { /* popup already gone */ }
@@ -56,22 +59,36 @@ function openPanel() {
     content.append(ui.root);
     popup = new ctx.Popup(content, ctx.POPUP_TYPE.TEXT, '', {
         okButton: '关闭',
-        wide: true,
         allowVerticalScrolling: true,
         leftAlign: true,
         onClosing: () => {
+            popupResize?.destroy();
+            popupResize = undefined;
             popup = undefined;
             if (uiHost && ui?.root) uiHost.append(ui.root);
             return true;
         },
     });
     const instance = popup;
+    const mountResize = () => {
+        if (popup !== instance || popupResize) return;
+        const dlg = instance.dlg ?? content.closest('dialog.popup, .popup');
+        if (dlg) popupResize = attachPopupResize(dlg, { initialSize: popupSize, onSizeChange: s => { popupSize = s; } });
+    };
+    mountResize();
     // Let the host's document click handler close the wand dropdown before the
     // modal opens; opening it synchronously keeps the menu floating behind it.
     setTimeout(() => {
         if (popup !== instance) return;
-        Promise.resolve(instance.show()).catch(() => {
-            if (popup === instance) popup = undefined;
+        mountResize();
+        Promise.resolve(instance.show()).then(() => {
+            mountResize();
+        }).catch(() => {
+            if (popup === instance) {
+                popupResize?.destroy();
+                popupResize = undefined;
+                popup = undefined;
+            }
             if (uiHost && ui?.root) uiHost.append(ui.root);
         });
     }, 0);
@@ -110,14 +127,14 @@ async function initialize() {
             uiHost.id = 'worldbook_switch_manager_storage';
             uiHost.hidden = true;
             document.body.append(uiHost);
-            ui = mountUI(manager, uiHost, { open: false });
+            ui = mountUI(manager, uiHost, { open: true, inPopup: true });
             launcher = createLauncher(menu, openPanel);
         } else {
             // Hosts without the wand menu keep the previous settings-panel entry.
             const target = document.querySelector('#extensions_settings2') ?? document.querySelector('#extensions_settings');
             if (!target) throw new Error('未找到扩展设置面板。');
             console.warn('世界书自动开关管理器：未找到魔术棒菜单，退回扩展设置面板。');
-            ui = mountUI(manager, target);
+            ui = mountUI(manager, target, { open: false, inPopup: false });
         }
     } catch (error) {
         if (run !== boot) return;

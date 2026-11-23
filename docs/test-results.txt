@@ -6,7 +6,7 @@ At C:\Program Files\nodejs\npm.ps1:29 char:3
     + FullyQualifiedErrorId : NativeCommandError
  
 
-> sillytavern-worldbook-switch-manager@1.3.1 test
+> sillytavern-worldbook-switch-manager@1.3.2 test
 > node --test
 
 TAP version 13
@@ -24,510 +24,525 @@ TAP version 13
 # Subtest: A09/A18: primary, attached, global, chat and persona books, empty books, no unrelated loading
 ok 1 - A09/A18: primary, attached, global, chat and persona books, empty books, no unrelated loading
   ---
-  duration_ms: 3.6489
+  duration_ms: 2.3708
   ...
 # Subtest: group books include enabled participating members only
 ok 2 - group books include enabled participating members only
   ---
-  duration_ms: 0.4405
+  duration_ms: 0.6182
   ...
 # Subtest: render follows native regex prompt flags and native default depth
 ok 3 - render follows native regex prompt flags and native default depth
   ---
-  duration_ms: 0.9378
+  duration_ms: 0.434
   ...
 # Subtest: disabled prompt slot does not count even if the exact entry text is in chat history
 ok 4 - disabled prompt slot does not count even if the exact entry text is in chat history
   ---
-  duration_ms: 0.3869
+  duration_ms: 0.3558
   ...
 # Subtest: ambiguous nonstandard insertion positions conservatively wait for verifiable evidence
 ok 5 - ambiguous nonstandard insertion positions conservatively wait for verifiable evidence
   ---
-  duration_ms: 0.3574
+  duration_ms: 0.3512
   ...
 # Subtest: worldbook filenames matching JavaScript object properties remain valid selections
 ok 6 - worldbook filenames matching JavaScript object properties remain valid selections
   ---
-  duration_ms: 0.3947
+  duration_ms: 0.5787
   ...
 # Subtest: evidence collection never re-evaluates regex macros that may write variables
 ok 7 - evidence collection never re-evaluates regex macros that may write variables
   ---
-  duration_ms: 0.2045
+  duration_ms: 0.3247
   ...
 # Subtest: render safely expands basic macros like {{char}} and {{user}}
 ok 8 - render safely expands basic macros like {{char}} and {{user}}
   ---
-  duration_ms: 0.2654
+  duration_ms: 0.4527
   ...
 # Subtest: render extracts longest static chunk when unknown macros exist
 ok 9 - render extracts longest static chunk when unknown macros exist
   ---
-  duration_ms: 0.4938
+  duration_ms: 0.5238
   ...
 # Subtest: list gracefully tolerates partial worldbook load failures
 ok 10 - list gracefully tolerates partial worldbook load failures
   ---
-  duration_ms: 1.7462
+  duration_ms: 1.594
   ...
 # Subtest: scanOptions reads native depth, case sensitivity and whole-word flags with safe fallbacks
 ok 11 - scanOptions reads native depth, case sensitivity and whole-word flags with safe fallbacks
   ---
-  duration_ms: 0.3752
+  duration_ms: 0.3946
   ...
 # Subtest: basic cycle: injected entry is filtered for the cooldown rounds, then returns
 ok 12 - basic cycle: injected entry is filtered for the cooldown rounds, then returns
   ---
-  duration_ms: 10.7497
+  duration_ms: 11.8697
   ...
 # Subtest: records live on the anchor and the reply, inside the active swipe, and survive save/reload
 ok 13 - records live on the anchor and the reply, inside the active swipe, and survive save/reload
   ---
-  duration_ms: 2.0992
+  duration_ms: 2.3375
   ...
 # Subtest: constant (blue) entries are not cooled by default; opt-in cools them
 ok 14 - constant (blue) entries are not cooled by default; opt-in cools them
   ---
-  duration_ms: 1.5485
+  duration_ms: 1.4183
   ...
 # Subtest: swipes: each swipe keeps its own outcome; switching swipes switches the state
 ok 15 - swipes: each swipe keeps its own outcome; switching swipes switches the state
   ---
-  duration_ms: 2.4347
+  duration_ms: 1.863
   ...
 # Subtest: swipe of a later round still sees cooldowns from earlier rounds
 ok 16 - swipe of a later round still sees cooldowns from earlier rounds
   ---
-  duration_ms: 1.636
+  duration_ms: 1.4342
   ...
 # Subtest: failed swipe restores the previous swipe and its record; streaming new swipe works
 ok 17 - failed swipe restores the previous swipe and its record; streaming new swipe works
   ---
-  duration_ms: 1.5237
+  duration_ms: 0.8923
   ...
 # Subtest: deleting the shown swipe shows the remaining swipe state
 ok 18 - deleting the shown swipe shows the remaining swipe state
   ---
-  duration_ms: 1.4441
+  duration_ms: 0.9722
   ...
 # Subtest: regenerate replaces the reply and its outcome
 ok 19 - regenerate replaces the reply and its outcome
   ---
-  duration_ms: 2.1315
+  duration_ms: 0.6313
   ...
 # Subtest: continue merges with the outcome of the reply it continues
 ok 20 - continue merges with the outcome of the reply it continues
   ---
-  duration_ms: 1.6975
+  duration_ms: 1.0289
   ...
 # Subtest: rollback: 20 floors, go back to floor 16 and delete the rest = state of floor 16
 ok 21 - rollback: 20 floors, go back to floor 16 and delete the rest = state of floor 16
   ---
-  duration_ms: 5.8927
+  duration_ms: 5.6698
   ...
 # Subtest: deleting a middle floor never rewrites the present
 ok 22 - deleting a middle floor never rewrites the present
   ---
-  duration_ms: 1.498
+  duration_ms: 1.5211
   ...
 # Subtest: branch and checkpoint copy the timeline; branches evolve independently
 ok 23 - branch and checkpoint copy the timeline; branches evolve independently
   ---
-  duration_ms: 2.4957
+  duration_ms: 2.3887
   ...
 # Subtest: branch from a non-first swipe uses that swipe
 ok 24 - branch from a non-first swipe uses that swipe
   ---
-  duration_ms: 1.7724
+  duration_ms: 1.5612
   ...
 # Subtest: stopped and failed generations leave no record and do not count
 ok 25 - stopped and failed generations leave no record and do not count
   ---
-  duration_ms: 0.6427
+  duration_ms: 0.6002
   ...
 # Subtest: tool-call continuation keeps the first request evidence (stream and non-stream)
 ok 26 - tool-call continuation keeps the first request evidence (stream and non-stream)
   ---
-  duration_ms: 0.774
+  duration_ms: 0.7767
   ...
 # Subtest: quiet request inside another listener of MESSAGE_RECEIVED does not break commit
 ok 27 - quiet request inside another listener of MESSAGE_RECEIVED does not break commit
   ---
-  duration_ms: 0.9835
+  duration_ms: 0.7411
   ...
 # Subtest: Text Completion: overlapping side request taints the round instead of guessing
 ok 28 - Text Completion: overlapping side request taints the round instead of guessing
   ---
-  duration_ms: 1.1342
+  duration_ms: 1.0561
   ...
 # Subtest: dry runs and standalone quiet/impersonate never count
 ok 29 - dry runs and standalone quiet/impersonate never count
   ---
-  duration_ms: 0.4433
+  duration_ms: 0.4076
   ...
 # Subtest: hidden user messages still open a round
 ok 30 - hidden user messages still open a round
   ---
-  duration_ms: 0.8005
+  duration_ms: 0.7133
   ...
 # Subtest: AI continuous replies: same round by default, a new round with aiTurns
 ok 31 - AI continuous replies: same round by default, a new round with aiTurns
   ---
-  duration_ms: 1.8892
+  duration_ms: 1.8378
   ...
 # Subtest: group chat: several members answering one message share the round
 ok 32 - group chat: several members answering one message share the round
   ---
-  duration_ms: 0.7876
+  duration_ms: 0.7797
   ...
 # Subtest: manual freeze is a draft until the next reply, then follows the timeline
 ok 33 - manual freeze is a draft until the next reply, then follows the timeline
   ---
-  duration_ms: 3.7549
+  duration_ms: 2.8808
   ...
 # Subtest: a draft copied into a branch from another point is ignored there
 ok 34 - a draft copied into a branch from another point is ignored there
   ---
-  duration_ms: 1.6802
+  duration_ms: 1.0691
   ...
 # Subtest: unfreeze removes a committed freeze from the next round on
 ok 35 - unfreeze removes a committed freeze from the next round on
   ---
-  duration_ms: 1.1335
+  duration_ms: 0.9847
   ...
 # Subtest: freezing is refused while a generation is running
 ok 36 - freezing is refused while a generation is running
   ---
-  duration_ms: 0.2949
+  duration_ms: 0.3187
   ...
 # Subtest: paused manager neither filters nor writes; automatic off keeps manual freezes
 ok 37 - paused manager neither filters nor writes; automatic off keeps manual freezes
   ---
-  duration_ms: 0.6937
+  duration_ms: 0.7165
   ...
 # Subtest: clearing the chat data removes every record and the draft
 ok 38 - clearing the chat data removes every record and the draft
   ---
-  duration_ms: 1.267
+  duration_ms: 1.2317
   ...
 # Subtest: legacy chats without records start counting from their existing rounds
 ok 39 - legacy chats without records start counting from their existing rounds
   ---
-  duration_ms: 0.583
+  duration_ms: 0.5559
   ...
 # Subtest: switching chats mid-generation never writes into the other chat
 ok 40 - switching chats mid-generation never writes into the other chat
   ---
-  duration_ms: 0.3714
+  duration_ms: 0.3132
   ...
 # Subtest: editing a message keeps the records
 ok 41 - editing a message keeps the records
   ---
-  duration_ms: 0.6265
+  duration_ms: 0.4172
   ...
 # Subtest: book names that are Object.prototype keys stay plain data
 ok 42 - book names that are Object.prototype keys stay plain data
   ---
-  duration_ms: 0.5906
+  duration_ms: 0.4148
   ...
 # Subtest: missing capability blocks startup and stop removes every event subscription
 ok 43 - missing capability blocks startup and stop removes every event subscription
   ---
-  duration_ms: 1.2491
+  duration_ms: 0.3222
   ...
 # Subtest: async book loads from an old chat cannot overwrite the current list
 ok 44 - async book loads from an old chat cannot overwrite the current list
   ---
-  duration_ms: 0.4858
+  duration_ms: 0.3064
   ...
 # Subtest: chat-completion payload must keep the entry after final transformations
 ok 45 - chat-completion payload must keep the entry after final transformations
   ---
-  duration_ms: 0.7155
+  duration_ms: 1.3962
   ...
 # Subtest: green cap + timeline cooldown staggers activations and skips recording capped entries
 ok 46 - green cap + timeline cooldown staggers activations and skips recording capped entries
   ---
-  duration_ms: 4.1465
+  duration_ms: 4.1462
   ...
 # Subtest: green cap preserves consistency across timeline rollback and branching
 ok 47 - green cap preserves consistency across timeline rollback and branching
   ---
-  duration_ms: 2.3173
+  duration_ms: 1.4399
   ...
 # Subtest: green cap ranks actual candidates without cutting surviving regenerate or continue context
 ok 48 - green cap ranks actual candidates without cutting surviving regenerate or continue context
   ---
-  duration_ms: 1.8319
+  duration_ms: 1.7684
   ...
 # Subtest: dryRun/quiet native scans cannot overwrite successful summary or reserve main quota
 ok 49 - dryRun/quiet native scans cannot overwrite successful summary or reserve main quota
   ---
-  duration_ms: 1.1016
+  duration_ms: 1.192
   ...
 # Subtest: native green cap deduplicates copies, removes all victims from accepted Map only
 ok 50 - native green cap deduplicates copies, removes all victims from accepted Map only
   ---
-  duration_ms: 1.5212
+  duration_ms: 0.6554
   ...
 # Subtest: table/status plugin in-place MESSAGE_UPDATED preserves timeline cooldowns and manual freezes
 ok 51 - table/status plugin in-place MESSAGE_UPDATED preserves timeline cooldowns and manual freezes
   ---
-  duration_ms: 0.9696
+  duration_ms: 1.6859
   ...
 # Subtest: A11: delay 0 / cooldown 1, successful injection -> closed -> eligible, cycle repeats
 ok 52 - A11: delay 0 / cooldown 1, successful injection -> closed -> eligible, cycle repeats
   ---
-  duration_ms: 2.2893
+  duration_ms: 2.227
   ...
 # Subtest: A12: delay 2 / cooldown 2 is not reset by subsequent activations
 ok 53 - A12: delay 2 / cooldown 2 is not reset by subsequent activations
   ---
-  duration_ms: 0.8424
+  duration_ms: 0.995
   ...
 # Subtest: A13: regeneration does not advance time or change eligibility for its logical round
 ok 54 - A13: regeneration does not advance time or change eligibility for its logical round
   ---
-  duration_ms: 0.2855
+  duration_ms: 0.4435
   ...
 # Subtest: A06–A08, A17: empty selection means all; persistent whole-book choice covers new entries
 ok 55 - A06–A08, A17: empty selection means all; persistent whole-book choice covers new entries
   ---
-  duration_ms: 0.3204
+  duration_ms: 0.3547
   ...
 # Subtest: A16: auto and manual close independently; cancelling manual never clears auto
 ok 56 - A16: auto and manual close independently; cancelling manual never clears auto
   ---
-  duration_ms: 0.3859
+  duration_ms: 0.4173
   ...
 # Subtest: A19: master off releases every overlay and preserves rules
 ok 57 - A19: master off releases every overlay and preserves rules
   ---
-  duration_ms: 0.2613
+  duration_ms: 0.2879
   ...
 # Subtest: multiple books and same numeric UID never share a cycle
 ok 58 - multiple books and same numeric UID never share a cycle
   ---
-  duration_ms: 0.3363
+  duration_ms: 0.3324
   ...
 # Subtest: scope changes suspend only automatic rules, manual remains explicit
 ok 59 - scope changes suspend only automatic rules, manual remains explicit
   ---
-  duration_ms: 0.2189
+  duration_ms: 0.2036
   ...
 # Subtest: duration edits apply to future cycles and preserve already-established duration
 ok 60 - duration edits apply to future cycles and preserve already-established duration
   ---
-  duration_ms: 0.4719
+  duration_ms: 0.4295
   ...
 # Subtest: supports verified 1.18 and 1.19 stable versions, rejects prereleases and unrelated versions
 ok 61 - supports verified 1.18 and 1.19 stable versions, rejects prereleases and unrelated versions
   ---
-  duration_ms: 0.6576
+  duration_ms: 0.6385
   ...
 # Subtest: isCompatibleVersion accepts 1.18+ and prereleases, rejects <1.18
 ok 62 - isCompatibleVersion accepts 1.18+ and prereleases, rejects <1.18
   ---
-  duration_ms: 0.6613
+  duration_ms: 0.4217
   ...
 # Subtest: settingsWithDefaults migrates protectConstant to single includeConstant and normalizes cap settings
 ok 63 - settingsWithDefaults migrates protectConstant to single includeConstant and normalizes cap settings
   ---
-  duration_ms: 0.3625
+  duration_ms: 0.3249
   ...
 # Subtest: native accepted green cap: mention priorities, fallback eligibility, dedup and successful quota
 ok 64 - native accepted green cap: mention priorities, fallback eligibility, dedup and successful quota
   ---
-  duration_ms: 1.6862
+  duration_ms: 1.5678
   ...
 # Subtest: A01: native accepted description/recursive/macro candidates are limited even without a raw-chat match
 ok 65 - A01: native accepted description/recursive/macro candidates are limited even without a raw-chat match
   ---
-  duration_ms: 13.0239
+  duration_ms: 9.7792
   ...
 # Subtest: A02: ineligible quiet-only/failed-probability entries do not take a native accepted slot
 ok 66 - A02: ineligible quiet-only/failed-probability entries do not take a native accepted slot
   ---
-  duration_ms: 1.2267
+  duration_ms: 0.856
   ...
 # Subtest: A03: continue has one shared round quota independent of automatic cooldown
 ok 67 - A03: continue has one shared round quota independent of automatic cooldown
   ---
-  duration_ms: 4.3345
+  duration_ms: 3.4149
   ...
 # Subtest: A04: regenerate after host removes only target keeps surviving prior AI context
 ok 68 - A04: regenerate after host removes only target keeps surviving prior AI context
   ---
-  duration_ms: 3.5422
+  duration_ms: 1.9862
   ...
 # Subtest: native scan pruning waits for final loop, includes max recursion termination
 ok 69 - native scan pruning waits for final loop, includes max recursion termination
   ---
-  duration_ms: 0.7041
+  duration_ms: 0.5094
   ...
 # Subtest: stop/failure creates no quota, retries are free; successful reload preserves quota
 ok 70 - stop/failure creates no quota, retries are free; successful reload preserves quota
   ---
-  duration_ms: 3.4178
+  duration_ms: 1.8105
   ...
 # Subtest: n>1, selected swipes, deletion and branch rollback carry only current visible quota
 ok 71 - n>1, selected swipes, deletion and branch rollback carry only current visible quota
   ---
-  duration_ms: 4.7867
+  duration_ms: 2.6487
   ...
 # Subtest: tool continuation shares transient quota; failure rolls it back, success commits just once
 ok 72 - tool continuation shares transient quota; failure rolls it back, success commits just once
   ---
-  duration_ms: 2.6556
+  duration_ms: 1.5791
   ...
 # Subtest: dryRun/quiet native selections never commit quota or overwrite successful summary
 ok 73 - dryRun/quiet native selections never commit quota or overwrite successful summary
   ---
-  duration_ms: 2.3978
+  duration_ms: 1.1032
   ...
 # Subtest: cap off does not alter accepted map or add quota fields
 ok 74 - cap off does not alter accepted map or add quota fields
   ---
-  duration_ms: 0.893
+  duration_ms: 0.9383
   ...
 # Subtest: native hook missing: disable cap safely with explicit notice, no legacy simulation
 ok 75 - native hook missing: disable cap safely with explicit notice, no legacy simulation
   ---
-  duration_ms: 1.0617
+  duration_ms: 1.4343
   ...
 # Subtest: A05: 600 different native candidate depths fit a 128MB independent Node heap
 ok 76 - A05: 600 different native candidate depths fit a 128MB independent Node heap
   ---
-  duration_ms: 105.937
+  duration_ms: 102.2442
   ...
 # Subtest: automatic off + capEnabled on does not render or emit cooldown evidenceWarning while committing quota
 ok 77 - automatic off + capEnabled on does not render or emit cooldown evidenceWarning while committing quota
   ---
-  duration_ms: 0.7088
+  duration_ms: 0.5107
   ...
 # Subtest: continue with full quota and active constant entry preserves lastCapSkipped
 ok 78 - continue with full quota and active constant entry preserves lastCapSkipped
   ---
-  duration_ms: 0.5838
+  duration_ms: 0.6941
   ...
 # Subtest: review\#1: every swipe generated by one multi-choice request (n=2) records the injection
 ok 79 - review\#1: every swipe generated by one multi-choice request (n=2) records the injection
   ---
-  duration_ms: 11.2842
+  duration_ms: 10.3881
   ...
 # Subtest: review\#2: a failed request does not consume a cooldown round, retried or followed by a new message
 ok 80 - review\#2: a failed request does not consume a cooldown round, retried or followed by a new message
   ---
-  duration_ms: 4.691
+  duration_ms: 4.7791
   ...
 # Subtest: review\#2: two user messages in a row before a reply are one round
 ok 81 - review\#2: two user messages in a row before a reply are one round
   ---
-  duration_ms: 1.0529
+  duration_ms: 0.8554
   ...
 # Subtest: review\#3: a draft made after a reply does not apply in a branch taken at that round's user floor
 ok 82 - review\#3: a draft made after a reply does not apply in a branch taken at that round's user floor
   ---
-  duration_ms: 1.8323
+  duration_ms: 2.7793
   ...
 # Subtest: review\#3: a draft survives the user message being added before the reply
 ok 83 - review\#3: a draft survives the user message being added before the reply
   ---
-  duration_ms: 1.1842
+  duration_ms: 1.1136
   ...
 # Subtest: review\#4: visible text before a tool call is not committed if the tool follow-up fails
 ok 84 - review\#4: visible text before a tool call is not committed if the tool follow-up fails
   ---
-  duration_ms: 4.6593
+  duration_ms: 3.2777
   ...
 # Subtest: review\#5: a dry-run scan before the user message is added does not bind the real request
 ok 85 - review\#5: a dry-run scan before the user message is added does not bind the real request
   ---
-  duration_ms: 1.6397
+  duration_ms: 1.5273
   ...
 # Subtest: review\#6: with aiTurns, a tool message between two AI replies does not break round counting
 ok 86 - review\#6: with aiTurns, a tool message between two AI replies does not break round counting
   ---
-  duration_ms: 2.0161
+  duration_ms: 2.872
   ...
 # Subtest: review\#7: clearing reports a failed save and can be retried
 ok 87 - review\#7: clearing reports a failed save and can be retried
   ---
-  duration_ms: 1.2195
+  duration_ms: 1.4316
   ...
 # Subtest: rounds are counted by anchors; legacy chats derive plain counts
 ok 88 - rounds are counted by anchors; legacy chats derive plain counts
   ---
-  duration_ms: 1.945
+  duration_ms: 1.7595
   ...
 # Subtest: snapshot + deltas: cycles apply after the reply, later anchors count and prune
 ok 89 - snapshot + deltas: cycles apply after the reply, later anchors count and prune
   ---
-  duration_ms: 2.0206
+  duration_ms: 1.6263
   ...
 # Subtest: a delta from another anchor or round is ignored
 ok 90 - a delta from another anchor or round is ignored
   ---
-  duration_ms: 0.2005
+  duration_ms: 0.2525
   ...
 # Subtest: writeDelta merges the same round and mirrors into the active swipe
 ok 91 - writeDelta merges the same round and mirrors into the active swipe
   ---
-  duration_ms: 0.451
+  duration_ms: 0.6218
   ...
 # Subtest: malformed records are ignored instead of crashing
 ok 92 - malformed records are ignored instead of crashing
   ---
-  duration_ms: 0.1789
+  duration_ms: 0.2281
   ...
 # Subtest: narrator notes are not replies; hidden replies are
 ok 93 - narrator notes are not replies; hidden replies are
   ---
-  duration_ms: 0.1112
+  duration_ms: 0.1658
   ...
 # Subtest: findAnchor: last user message, or the previous reply with aiTurns
 ok 94 - findAnchor: last user message, or the previous reply with aiTurns
   ---
-  duration_ms: 0.2091
+  duration_ms: 0.2979
   ...
 # Subtest: aiTurns: a reply followed by a reply opens a round
 ok 95 - aiTurns: a reply followed by a reply opens a round
   ---
-  duration_ms: 0.13
+  duration_ms: 0.179
   ...
 # Subtest: draft is valid only at the timeline point it was made
 ok 96 - draft is valid only at the timeline point it was made
   ---
-  duration_ms: 0.435
+  duration_ms: 0.6156
   ...
 # Subtest: buildStart applies the draft and drops expired rules
 ok 97 - buildStart applies the draft and drops expired rules
   ---
-  duration_ms: 0.6425
+  duration_ms: 0.634
   ...
 # Subtest: stripAll removes messages, swipes and draft records only
 ok 98 - stripAll removes messages, swipes and draft records only
   ---
-  duration_ms: 0.3191
+  duration_ms: 0.3673
   ...
 # Subtest: 100 000 messages derive quickly from the last snapshot
 ok 99 - 100 000 messages derive quickly from the last snapshot
   ---
-  duration_ms: 32.4279
+  duration_ms: 31.9898
   ...
-1..99
-# tests 99
+# Subtest: clampPopupSize rejects missing or non-finite inputs
+ok 100 - clampPopupSize rejects missing or non-finite inputs
+  ---
+  duration_ms: 0.9892
+  ...
+# Subtest: clampPopupSize keeps dimensions within viewport margins and minimum floor
+ok 101 - clampPopupSize keeps dimensions within viewport margins and minimum floor
+  ---
+  duration_ms: 1.3117
+  ...
+# Subtest: clampPopupSize resists transient Android IME tiny viewport collapse (WB-05 floor)
+ok 102 - clampPopupSize resists transient Android IME tiny viewport collapse (WB-05 floor)
+  ---
+  duration_ms: 0.2848
+  ...
+1..102
+# tests 102
 # suites 0
-# pass 99
+# pass 102
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 276.7759
+# duration_ms 264.7592
 
 
-> sillytavern-worldbook-switch-manager@1.3.1 check
+> sillytavern-worldbook-switch-manager@1.3.2 check
 > node scripts/check.mjs
 
 Manifest paths, lifecycle exports, JavaScript syntax and capability contract: PASS
