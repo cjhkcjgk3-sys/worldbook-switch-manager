@@ -50,6 +50,23 @@ export function createAdapter(wi, regex, openai) {
             }
             return { books: loadedBooks, entries: loadedEntries };
         },
+        /** Read the current chat back from the server (used to confirm a save). */
+        async readSavedChat(ctx) {
+            const id = ctx.getCurrentChatId();
+            const headers = typeof ctx.getRequestHeaders === 'function' ? ctx.getRequestHeaders() : { 'Content-Type': 'application/json' };
+            let response;
+            if (ctx.groupId) {
+                response = await fetch('/api/chats/group/get', { method: 'POST', headers, cache: 'no-cache', body: JSON.stringify({ id }) });
+            } else {
+                const c = ctx.characters?.[ctx.characterId];
+                if (!c) throw new Error('No character');
+                response = await fetch('/api/chats/get', { method: 'POST', headers, cache: 'no-cache', body: JSON.stringify({ ch_name: c.name, file_name: id, avatar_url: c.avatar }) });
+            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const rows = await response.json();
+            // Group chat files are returned without the header line.
+            return ctx.groupId && Array.isArray(rows) && rows[0] && !('chat_metadata' in rows[0]) ? [{ chat_metadata: {} }, ...rows] : rows;
+        },
         /** Names of every worldbook that exists on the server (for stale-selection display). */
         allBooks() { return Array.isArray(wi.world_names) ? [...wi.world_names] : null; },
         /**

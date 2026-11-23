@@ -268,7 +268,7 @@ test('clearing the chat data removes every record and the draft', async () => {
     const st = new FakeST();
     await round(st, 'dragon'); await st.generate('swipe');
     st.manager.manualFreeze([entryKey('book', CASTLE)], 1);
-    assert.ok(st.manager.clearChatData() > 0);
+    assert.ok((await st.manager.clearChatData()).removed > 0);
     assert.equal(JSON.stringify(st.chat).includes('"wsm"'), false);
     assert.equal(st.chatMetadata[DRAFT], undefined);
     assert.equal(st.status(DRAGON).cooldown, 0);

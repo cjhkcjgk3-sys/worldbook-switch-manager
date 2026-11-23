@@ -135,7 +135,7 @@ export function mountUI(manager, target, { open = false } = {}) {
         const text = '将删除当前聊天所有楼层（含备选回复）里本插件写入的冷却记录和手动冻结草稿，不影响世界书和聊天内容。确定吗？';
         const ok = typeof ctx.callGenericPopup === 'function' && ctx.POPUP_TYPE?.CONFIRM !== undefined
             ? await ctx.callGenericPopup(text, ctx.POPUP_TYPE.CONFIRM) : globalThis.confirm(text);
-        if (ok) manager.clearChatData();
+        if (ok) await manager.clearChatData();
     });
     dataActions.append(clearButton);
     const versionNote = el('p', '', 'wsm-help');

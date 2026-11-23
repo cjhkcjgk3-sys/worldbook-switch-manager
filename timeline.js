@@ -17,20 +17,30 @@ export const VERSION = 1;
 
 const plain = v => v && typeof v === 'object' && !Array.isArray(v);
 /** A character reply (hidden replies included); narrator/system notes are neither replies nor anchors. */
-export const isReply = m => Boolean(m) && !m.is_user && !m.extra?.type && !(m.is_system && !m.extra?.[KEY]?.d && !m.swipes);
+export const isReply = m => Boolean(m) && !m.is_user && !m.extra?.type && !m.extra?.tool_invocations && !(m.is_system && !m.extra?.[KEY]?.d && !m.swipes);
+/** System notes, tool-call records and narrator lines sit between turns without being one. */
+export const isTransparent = m => !m || (!m.is_user && !isReply(m));
+function nextTurn(chat, i, end) {
+    for (let j = i + 1; j < end; j++) if (!isTransparent(chat[j])) return chat[j];
+    return null;
+}
 /**
- * Does message `i` open a round? Every user message does (hidden ones too: hiding
- * only changes what the model sees). With `aiTurns`, a reply that is directly
- * followed by another reply also opens one (the second reply was a new AI turn).
- * `tip` marks the index a generation is about to answer, which counts even
- * though its follow-up reply does not exist yet.
+ * Does message `i` open a round?
+ * - A user message does (hidden ones too: hiding only changes what the model sees),
+ *   unless the next turn is another user message: consecutive user messages, e.g. one
+ *   whose request failed followed by a new one, are a single round answered once.
+ * - With `aiTurns`, a reply followed by another reply (tool records and system notes in
+ *   between are skipped) also opens one: the second reply was a new AI turn.
+ * `tip` marks the index a generation is about to answer; it always counts.
  */
 export function isAnchorAt(chat, i, end, aiTurns = false, tip = -1) {
     const m = chat[i];
     if (!m) return false;
-    if (m.is_user) return true;
+    if (i === tip) return true;
+    if (m.is_user) return !nextTurn(chat, i, end)?.is_user;
     if (!aiTurns || !isReply(m)) return false;
-    return i === tip || (i + 1 < end && isReply(chat[i + 1]));
+    const next = nextTurn(chat, i, end);
+    return Boolean(next && !next.is_user);
 }
 function cleanRules(value, kind) {
     const out = {};
@@ -80,16 +90,22 @@ export function derive(chat, { aiTurns = false, end = chat.length, tip = -1 } = 
         if (isAnchorAt(chat, i, end, aiTurns, tip)) { round += 1; prune(state, round); tipIndex = i; }
     }
     state.clock = round;
-    const last = chat[end - 1];
-    return { state, round, tipIndex, snapIndex, lastSnapId: snap?.id ?? null, tailIsUser: Boolean(last?.is_user) };
+    // Position of the visible end relative to the snapshot: a draft made here only applies
+    // to timelines that still contain at least this much after the snapshot.
+    let tail = end - 1;
+    while (tail >= 0 && isTransparent(chat[tail])) tail--;
+    return { state, round, tipIndex, snapIndex, lastSnapId: snap?.id ?? null, after: end - 1 - snapIndex, tailIsUser: Boolean(chat[tail]?.is_user) };
 }
 /** Round a brand-new turn would use (what the panel calls the next new round). */
 export const nextRound = d => (d.tailIsUser ? d.round : d.round + 1);
 
-export function draftFor(meta, lastSnapId) {
+export function draftFor(meta, lastSnapId, after = Infinity) {
     const draft = meta?.[DRAFT];
     if (!plain(draft) || !plain(draft.ops)) return null;
-    return (draft.base ?? null) === (lastSnapId ?? null) ? draft : null;
+    if ((draft.base ?? null) !== (lastSnapId ?? null)) return null;
+    // Older drafts (no position) keep the previous rule.
+    if (Number.isFinite(draft.after) && after < draft.after) return null;
+    return draft;
 }
 /** Apply manual ops (freeze: [start, end]; unfreeze: 0) on top of a state. */
 export function applyDraft(state, draft) {
@@ -144,9 +160,29 @@ export function stripAll(chat, meta) {
 /**
  * Index of the message a generation answers. `end` is where the generated reply
  * sits (chat.length for a new message, the target index for swipe/continue).
+ * Tool records and system notes right before the reply are skipped.
  */
 export function findAnchor(chat, end, aiTurns = false) {
-    if (aiTurns && end > 0 && isReply(chat[end - 1])) return end - 1;
-    for (let i = end - 1; i >= 0; i--) if (chat[i]?.is_user) return i;
+    let k = end - 1;
+    while (k >= 0 && isTransparent(chat[k])) k--;
+    if (k < 0) return -1;
+    if (chat[k].is_user || (aiTurns && isReply(chat[k]))) return k;
+    for (let i = k - 1; i >= 0; i--) if (chat[i]?.is_user) return i;
     return -1;
+}
+/** Also record `d` on swipes created by the same request (multi-choice, n > 1). */
+export function writeDeltaToSwipes(m, d, from) {
+    if (!Array.isArray(m?.swipe_info)) return;
+    for (let i = Math.max(0, from); i < m.swipe_info.length; i++) {
+        if (i === m.swipe_id || !plain(m.swipe_info[i])) continue;
+        const info = m.swipe_info[i];
+        if (!plain(info.extra)) info.extra = {};
+        info.extra[KEY] = { ...(plain(info.extra[KEY]) ? info.extra[KEY] : {}), v: VERSION, d: structuredClone(d) };
+    }
+}
+/** Undo a reply record (used when a tool chain turns out to continue). */
+export function removeDelta(m, from = 0) {
+    const drop = extra => { if (plain(extra?.[KEY])) { delete extra[KEY].d; if (Object.keys(extra[KEY]).every(k => k === 'v')) delete extra[KEY]; } };
+    drop(m?.extra);
+    if (Array.isArray(m?.swipe_info)) for (let i = Math.max(0, from); i < m.swipe_info.length; i++) drop(m.swipe_info[i]?.extra);
 }

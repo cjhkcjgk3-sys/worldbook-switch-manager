@@ -1,5 +1,5 @@
 import { ID, settingsWithDefaults, status, managed, entryKey, promptText, integer, normalizeSelection } from './core.js';
-import { DRAFT, derive, nextRound, draftFor, applyDraft, buildStart, readStart, writeStart, writeDelta, clearInherited, stripAll, findAnchor, isReply } from './timeline.js';
+import { DRAFT, derive, nextRound, draftFor, applyDraft, buildStart, readStart, readDelta, writeStart, writeDelta, writeWsm, writeDeltaToSwipes, removeDelta, clearInherited, stripAll, findAnchor, isReply } from './timeline.js';
 
 const EVENTS = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED'];
 const OPTIONAL_EVENTS = ['TOOL_CALLS_PERFORMED', 'MESSAGE_SWIPE_DELETED', 'MESSAGE_SENT'];
@@ -67,7 +67,7 @@ export class Manager {
             GENERATION_STOPPED: () => this.stopped(),
             GENERATION_ENDED: () => this.ended(),
             MESSAGE_RECEIVED: (id, type) => this.received(id, type),
-            TOOL_CALLS_PERFORMED: () => { const p = this.pending; if (p && p.phase !== 'done') p.toolContinuation = true; },
+            TOOL_CALLS_PERFORMED: () => this.toolCalls(),
             CHAT_CHANGED: () => this.changeChat(),
             MESSAGE_EDITED: () => this.touch(),
             MESSAGE_UPDATED: () => this.touch(),
@@ -153,9 +153,9 @@ export class Manager {
         const key = [chat, chat.length, chat[chat.length - 1], chat[chat.length - 1]?.swipe_id, this.settings.aiTurns, ctx.chatMetadata?.[DRAFT]];
         if (this.viewCache && this.viewCache.key.every((v, i) => v === key[i])) return this.viewCache.value;
         const d = derive(chat, { aiTurns: this.settings.aiTurns });
-        const draft = draftFor(ctx.chatMetadata, d.lastSnapId);
+        const draft = draftFor(ctx.chatMetadata, d.lastSnapId, d.after);
         const state = applyDraft(structuredClone(d.state), draft);
-        const value = { state, round: nextRound(d), completed: d.tailIsUser ? d.round - 1 : d.round, lastSnapId: d.lastSnapId, draft };
+        const value = { state, round: nextRound(d), completed: d.tailIsUser ? d.round - 1 : d.round, lastSnapId: d.lastSnapId, after: d.after, draft };
         this.viewCache = { key, value };
         return value;
     }
@@ -179,6 +179,7 @@ export class Manager {
         }
         if (p && p.toolContinuation && p.phase !== 'done' && p.chat === this.chatIdentity) {
             // Tool-call follow-up request: same reply, same round, keep earlier evidence.
+            // The binding stays locked: the follow-up answers the same anchor.
             p.toolContinuation = false;
             p.phase = 'collecting';
             p.ended = false;
@@ -190,22 +191,31 @@ export class Manager {
             const last = ctx.chat[ctx.chat.length - 1];
             if (isReply(last)) clearInherited(last);
         }
-        this.pending = { id: uuid(), type, chat: this.chatIdentity, phase: 'collecting', bound: false, anchor: null, round: 0, base: null, filterState: null,
+        this.pending = { id: uuid(), type, chat: this.chatIdentity, phase: 'collecting', locked: false, committed: null, target: null, swipeFrom: 0, anchor: null, round: 0, base: null, filterState: null,
             activated: new Map(), injected: new Map(), tainted: false, stopped: false, ended: false, nested: 0, toolContinuation: false, cache: null };
         this.touch();
     }
+    /**
+     * (Re)bind the generation to its anchor. Scans may come from a concurrent dry run
+     * (e.g. the prompt manager's preview, seen on 1.18 before the user message is added),
+     * so the binding is recomputed on every scan and only locked by events a dry run never
+     * emits: WORLD_INFO_ACTIVATED and the final payload.
+     */
     bind() {
         const p = this.pending;
         if (!p || p.phase !== 'collecting' || p.chat !== this.chatIdentity) return null;
-        if (p.bound) return p;
-        p.bound = true;
+        if (p.locked) return p;
         const ctx = this.context();
         const chat = ctx.chat;
         const aiTurns = this.settings.aiTurns;
         const last = chat[chat.length - 1];
         // swipe/continue answer the existing last reply; everything else appends one.
         const end = ['swipe', 'continue', 'append', 'appendFinal'].includes(p.type) && isReply(last) && chat.length > 0 ? chat.length - 1 : chat.length;
+        p.target = end === chat.length - 1 ? last : null;
+        // Swipes of the target from this index on are created by this request (n > 1).
+        p.swipeFrom = !p.target ? 0 : p.type === 'swipe' ? (p.target.swipe_id ?? 0) : Infinity;
         const a = findAnchor(chat, end, aiTurns);
+        p.anchor = null;
         if (a < 0) return p; // nothing to answer (e.g. greeting swipe): filter only
         const s = readStart(chat[a]);
         const d = derive(chat, { aiTurns, end: a + 1, tip: a });
@@ -213,7 +223,7 @@ export class Manager {
         p.round = s ? s.round : d.round;
         p.base = s ? { auto: s.auto, manual: s.manual } : { auto: d.state.auto, manual: d.state.manual };
         const full = derive(chat, { aiTurns });
-        p.draft = draftFor(ctx.chatMetadata, full.lastSnapId);
+        p.draft = draftFor(ctx.chatMetadata, full.lastSnapId, full.after);
         p.filterState = applyDraft(structuredClone({ ...p.base, clock: p.round }), p.draft);
         return p;
     }
@@ -232,6 +242,7 @@ export class Manager {
     }
     activated(entries) {
         const p = this.bind();
+        if (p) p.locked = true;
         if (!p?.anchor || !Array.isArray(entries)) return;
         const settings = this.settings;
         if (!settings.enabled || !settings.automatic) return;
@@ -248,6 +259,7 @@ export class Manager {
         if (dryRun || prompt == null) return;
         const p = this.bind();
         if (!p) return;
+        p.locked = true;
         p.phase = 'sent';
         if (!p.anchor) return;
         const ctx = this.context();
@@ -298,7 +310,8 @@ export class Manager {
         if (!settings.enabled) return this.touch();
         const ctx = this.context();
         let s = readStart(p.anchor);
-        const draft = draftFor(ctx.chatMetadata, derive(ctx.chat, { aiTurns: settings.aiTurns }).lastSnapId);
+        const full = derive(ctx.chat, { aiTurns: settings.aiTurns });
+        const draft = draftFor(ctx.chatMetadata, full.lastSnapId, full.after);
         if (!s) {
             s = buildStart(uuid(), p.round, { ...p.base, clock: p.round }, draft);
             writeStart(p.anchor, s);
@@ -309,18 +322,40 @@ export class Manager {
         }
         if (draft && ctx.chatMetadata) delete ctx.chatMetadata[DRAFT];
         const inj = p.tainted || !settings.automatic ? [] : [...p.injected.values()];
+        const prev = readDelta(reply);
+        const from = reply === p.target ? p.swipeFrom : 0;
         writeDelta(reply, { anchor: s.id, round: p.round, inj, delay: integer(settings.delay), cooldown: integer(settings.cooldown, 1) });
+        // Multi-choice requests (n > 1) create several swipes at once; they share this outcome.
+        if (Number.isFinite(from)) writeDeltaToSwipes(reply, readDelta(reply), from);
+        p.committed = { reply, prev, from };
         if (p.tainted) this.evidenceWarning = '本回合生成期间有并行的后台请求，无法区分注入内容，本回合不启动自动冷却。';
         // SillyTavern saves the chat right after MESSAGE_RECEIVED; no extra save here.
         this.touch();
+    }
+    /**
+     * A reply that turns out to be followed by tool calls is only the first part of the
+     * answer: undo its record and wait for the follow-up request (or its failure).
+     */
+    toolCalls() {
+        const p = this.pending;
+        if (!p || p.chat !== this.chatIdentity) return;
+        if (p.phase === 'done' && p.committed) {
+            const { reply, prev, from } = p.committed;
+            if (prev) writeWsm(reply, { d: prev }); else removeDelta(reply, Number.isFinite(from) ? from : reply.swipe_id ?? 0);
+            p.committed = null;
+            p.phase = 'sent';
+            p.ended = false;
+            this.viewCache = null;
+        }
+        if (p.phase !== 'done') p.toolContinuation = true;
     }
     /** Manual freezes are stored as a draft bound to the current timeline point; the next reply commits them. */
     editDraft(update) {
         const ctx = this.context();
         if (!ctx.getCurrentChatId() || !ctx.chatMetadata) return false;
         const v = this.view;
-        const current = draftFor(ctx.chatMetadata, v.lastSnapId);
-        const draft = { base: v.lastSnapId, ops: { ...(current?.ops ?? {}) } };
+        const current = draftFor(ctx.chatMetadata, v.lastSnapId, v.after);
+        const draft = { base: v.lastSnapId, after: v.after, ops: { ...(current?.ops ?? {}) } };
         update(draft.ops, v);
         ctx.chatMetadata[DRAFT] = draft;
         (ctx.saveMetadataDebounced ?? ctx.saveMetadata)?.call(ctx);
@@ -338,16 +373,35 @@ export class Manager {
         if (this.busy) return false;
         return this.editDraft(ops => { for (const key of keys) ops[key] = 0; });
     }
-    /** Remove every record this extension wrote into the current chat. */
-    clearChatData() {
+    /**
+     * Remove every record this extension wrote into the current chat, save, and check the
+     * saved file: SillyTavern's save wrapper swallows errors, so success is only reported
+     * once the file on the server is confirmed clean. Returns { removed, saved }.
+     */
+    async clearChatData() {
         const ctx = this.context();
-        if (this.busy || !ctx.getCurrentChatId()) return 0;
-        const n = stripAll(ctx.chat, ctx.chatMetadata);
+        if (this.busy || !ctx.getCurrentChatId()) return { removed: 0, saved: false };
+        const chat = this.chatIdentity;
+        const removed = stripAll(ctx.chat, ctx.chatMetadata);
         this.pending = null;
-        if (typeof ctx.saveChat === 'function') ctx.saveChat(); else (ctx.saveMetadataDebounced ?? ctx.saveMetadata)?.call(ctx);
-        this.notice = n ? `已清除本聊天中的 ${n} 条插件记录。` : '本聊天没有插件记录。';
         this.touch();
-        return n;
+        let saved = null;
+        try {
+            if (typeof ctx.saveChat === 'function') await ctx.saveChat(); else await (ctx.saveMetadata ?? ctx.saveMetadataDebounced)?.call(ctx);
+            if (typeof this.adapter.readSavedChat === 'function') {
+                const rows = await this.adapter.readSavedChat(ctx);
+                if (!Array.isArray(rows) || !rows.length) throw new Error('empty');
+                saved = stripAll(structuredClone(rows.slice(1)), structuredClone(rows[0]?.chat_metadata ?? {})) === 0;
+            }
+        } catch {
+            saved = false;
+        }
+        if (chat !== this.chatIdentity) return { removed, saved };
+        if (saved === false) this.notice = `已从当前页面清除 ${removed} 条插件记录，但未能确认已保存到聊天文件（保存失败或无法读取）。请检查连接后再点一次「清除本聊天插件数据」。`;
+        else if (saved === null) this.notice = removed ? `已清除本聊天中的 ${removed} 条插件记录，并已请求酒馆保存。` : '本聊天没有插件记录。';
+        else this.notice = removed ? `已清除本聊天中的 ${removed} 条插件记录，并已确认保存。` : '本聊天没有插件记录（聊天文件已确认干净）。';
+        this.touch();
+        return { removed, saved };
     }
     entryStatus(e) { const v = this.view; return status(v.state, this.settings, e.world, e.uid, v.round, Boolean(e.constant)); }
     get activeKeys() { return new Set(this.entries.map(e => entryKey(e.world, e.uid))); }

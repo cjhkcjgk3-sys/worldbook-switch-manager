@@ -40,18 +40,19 @@ export class FakeST {
             get streamingProcessor() { return st.streamingProcessor; }, get extensionSettings() { return st.extensionSettings; },
             eventTypes: Object.fromEntries(NAMES.map(n => [n, n])), eventSource: this.events,
             characters: [{ avatar: 'a.png', name: 'A' }], characterId: 0, groupId: null,
-            getCurrentChatId: () => st.chatId, saveSettingsDebounced() {}, saveMetadataDebounced: () => st.save(), saveChat: async () => st.save(),
+            getCurrentChatId: () => st.chatId, saveSettingsDebounced() {}, saveMetadataDebounced: () => st.save(), saveChat: async () => { st.save(); },
             loadWorldInfo: async () => ({ entries: {} }),
         };
         this.manager = new Manager(() => this.ctx, {
             list: async () => ({ books: ['book'], entries: clone(this.entries) }),
             render: e => e.content, prepare: () => ({}), included: () => true,
+            readSavedChat: async () => { const f = this.files.get(this.chatId); if (!f) throw new Error('no file'); return [{ chat_metadata: f.meta }, ...f.chat]; },
         });
         this.manager.start();
     }
     emit(name, ...args) { return this.events.emit(name, ...args); }
     get settings() { return this.manager.settings; }
-    save() { this.saves++; this.files.set(this.chatId, JSON.parse(JSON.stringify({ meta: this.chatMetadata, chat: this.chat }))); }
+    save() { this.saves++; if (this.saveFails) return; this.files.set(this.chatId, JSON.parse(JSON.stringify({ meta: this.chatMetadata, chat: this.chat }))); }
     async reload() {
         const f = this.files.get(this.chatId);
         this.chat = clone(f.chat); this.chatMetadata = clone(f.meta);
@@ -75,7 +76,7 @@ export class FakeST {
      * opts: stream, fail, stop, tool, text, quiet (overlapping side request), sideApi
      */
     async generate(type = 'normal', opts = {}) {
-        const { stream = false, fail = false, stop = false, tool = false, text = `reply ${this.chat.length}`, quietInside = false, continuation = false } = opts;
+        const { stream = false, fail = false, stop = false, tool = false, text = `reply ${this.chat.length}`, quietInside = false, continuation = false, n = 1, send = null, preview = false, toolText = '', followFail = false } = opts;
         let target;
         if (type === 'swipe' && !continuation) {
             // Swiping past the last swipe adds a new one (copying the shown extra) before generating.
@@ -85,6 +86,12 @@ export class FakeST {
             target.swipe_id = target.swipes.length - 1; target.mes = ''; target.extra = clone(target.extra);
         }
         await this.emit('GENERATION_STARTED', type, {}, false);
+        if (preview && !continuation) {
+            // 1.18: a prompt-manager dry run can scan before the user message is added.
+            await this.emit('GENERATION_STARTED', 'normal', {}, true);
+            await this.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: clone(this.entries) });
+        }
+        if (send != null && !continuation) { this.chat.push({ is_user: true, mes: send, extra: {} }); await this.emit('MESSAGE_SENT', this.chat.length - 1); }
         if (type === 'regenerate' && !continuation) {
             this.chat.pop(); await this.emit('MESSAGE_DELETED', this.chat.length);
         }
@@ -96,13 +103,17 @@ export class FakeST {
         const prompt = active.map(e => e.content).join('\n') + '\n' + this.chat.map(m => m.mes).join('\n');
         await this.emit('GENERATE_AFTER_DATA', { prompt }, false);
         if (this.mainApi === 'openai') await this.emit('CHAT_COMPLETION_SETTINGS_READY', { messages: [{ role: 'system', content: prompt }], type });
-        if (fail) {
+        if (fail || (followFail && continuation)) {
             if (target) { target.swipes.pop(); target.swipe_info.pop(); target.swipe_id = target.swipes.length - 1; target.mes = target.swipes[target.swipe_id]; target.extra = clone(target.swipe_info[target.swipe_id].extra); }
             await this.emit('GENERATION_ENDED', this.chat.length);
             return { payload, active };
         }
         if (tool && !continuation) {
-            if (!stream) {
+            if (toolText) {
+                // Visible text in the same response as the tool call: it is kept as its own reply.
+                this.chat.push({ is_user: false, mes: toolText, swipes: [toolText], swipe_id: 0, swipe_info: [{ extra: {} }], extra: {} });
+                await this.emit('MESSAGE_RECEIVED', this.chat.length - 1, type);
+            } else if (!stream) {
                 this.chat.push({ is_user: false, mes: '', swipes: [''], swipe_id: 0, swipe_info: [{ extra: {} }], extra: {} });
                 await this.emit('MESSAGE_RECEIVED', this.chat.length - 1, type);
                 this.chat.pop(); await this.emit('MESSAGE_DELETED', this.chat.length);
@@ -116,6 +127,7 @@ export class FakeST {
         else if (type === 'continue') { target = this.chat[this.chat.length - 1]; target.mes += text; target.swipes[target.swipe_id] = target.mes; id = this.chat.length - 1; }
         else { this.chat.push({ is_user: false, mes: text, swipes: [text], swipe_id: 0, swipe_info: [{ extra: {} }], extra: {} }); id = this.chat.length - 1; }
         const m = this.chat[id];
+        for (let k = 1; k < n; k++) { m.swipes.push(`${text} alt ${k}`); m.swipe_info.push({ extra: clone(m.extra) }); }
         const receive = async () => {
             if (quietInside) await this.quiet();
             await this.emit('MESSAGE_RECEIVED', id, type);
