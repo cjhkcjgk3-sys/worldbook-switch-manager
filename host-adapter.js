@@ -1,5 +1,7 @@
 import { promptText } from './core.js';
 
+const CARD_FIELDS = ['description', 'personality', 'scenario', 'first_mes', 'mes_example', 'system_prompt', 'post_history_instructions', 'creator_notes'];
+
 /** Version-bound native modules, all read-only. See docs/API-SOURCES.md. */
 export function createAdapter(wi, regex, openai) {
     function booksForCharacter(c, character) {
@@ -48,23 +50,52 @@ export function createAdapter(wi, regex, openai) {
             }
             return { books: loadedBooks, entries: loadedEntries };
         },
-        render(e, ctx) {
-            // A second macro evaluation can write variables or choose a different
-            // random value. Never re-run a dynamic regex just to collect evidence.
+        /** Names of every worldbook that exists on the server (for stale-selection display). */
+        allBooks() { return Array.isArray(wi.world_names) ? [...wi.world_names] : null; },
+        /**
+         * Per-generation cache. Regex scripts and the comparison sources are read once
+         * per request instead of once per entry; character fields are read raw so no
+         * card macro is evaluated (macros may write variables or roll random values).
+         */
+        prepare(ctx) {
             const scripts = regex.getRegexScripts({ allowedOnly: true });
             const dynamic = scripts.some(script => !script.disabled && script.promptOnly && script.placement?.includes(regex.regex_placement.WORLD_INFO) && (
                 (Number(script.substituteRegex) !== 0 && script.findRegex?.includes('{{')) ||
                 script.replaceString?.replace(/{{match}}/gi, '').includes('{{') ||
                 script.trimStrings?.some(s => s.includes('{{'))
             ));
-            if (dynamic || !e.content) return '';
+            let sources = null;
+            return {
+                dynamic,
+                charName: ctx?.characters?.[ctx?.characterId]?.name ?? ctx?.name2 ?? '',
+                userName: ctx?.name1 ?? ctx?.user?.name ?? '',
+                get sources() {
+                    if (sources) return sources;
+                    const chars = ctx?.groupId
+                        ? (ctx.groups?.find(g => String(g.id) === String(ctx.groupId))?.members ?? []).map(a => ctx.characters?.find(c => c.avatar === a))
+                        : [ctx?.characters?.[ctx?.characterId]];
+                    const fields = [];
+                    for (const c of chars.filter(Boolean)) {
+                        for (const f of CARD_FIELDS) {
+                            const v = c.data?.[f] ?? c[f];
+                            if (typeof v === 'string' && v) fields.push(v);
+                        }
+                    }
+                    const persona = ctx?.powerUserSettings?.persona_description;
+                    sources = [...(ctx?.chat ?? []).map(m => m?.mes ?? ''), ...fields, ...(typeof persona === 'string' ? [persona] : [])];
+                    return sources;
+                },
+            };
+        },
+        render(e, ctx, cache = this.prepare(ctx)) {
+            // A second macro evaluation can write variables or choose a different
+            // random value. Never re-run a dynamic regex just to collect evidence.
+            if (cache.dynamic || !e.content) return '';
             let content = e.content;
             if (content.includes('{{')) {
-                const charName = ctx?.characters?.[ctx?.characterId]?.name ?? '';
-                const userName = ctx?.name1 ?? ctx?.user?.name ?? '';
                 content = content
-                    .replace(/{{\s*char\s*}}/gi, charName)
-                    .replace(/{{\s*user\s*}}/gi, userName);
+                    .replace(/{{\s*char\s*}}/gi, cache.charName)
+                    .replace(/{{\s*user\s*}}/gi, cache.userName);
             }
             if (content.includes('{{')) {
                 const chunks = content.split(/{{[^}]+}}/).map(s => s.trim()).filter(s => s.length >= 6);
@@ -75,7 +106,7 @@ export function createAdapter(wi, regex, openai) {
             const depth = e.position === wi.world_info_position.atDepth ? (e.depth ?? wi.DEFAULT_DEPTH) : null;
             return regex.getRegexedString(content, regex.regex_placement.WORLD_INFO, { depth, isMarkdown: false, isPrompt: true });
         },
-        included(e, ctx) {
+        included(e, ctx, cache) {
             const needle = e.rendered.trim();
             if (ctx.mainApi === 'openai' && [0, 1].includes(e.position)) {
                 // The prompt manager keeps source identifiers even when an identical
@@ -89,11 +120,8 @@ export function createAdapter(wi, regex, openai) {
             }
             // Other positions can be mixed into examples, author notes or depth
             // injections. Refuse ambiguous content already present in other sources.
-            const otherSources = [
-                ...ctx.chat.map(m => m.mes ?? ''),
-                ...Object.values(ctx.getCharacterCardFields?.() ?? {}).filter(v => typeof v === 'string'),
-            ];
-            return !otherSources.some(text => text.includes(needle));
+            const sources = (cache ?? this.prepare(ctx)).sources;
+            return !sources.some(text => text.includes(needle));
         },
     };
 }
