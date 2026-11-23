@@ -1,8 +1,8 @@
 # API 依据与依赖合同
 
-核对日期：2026-11-06。目标为 SillyTavern 前端 UI Extension。官方 `release` 分支只用于定位，实际施工固定到以下提交。
+核对日期：2026-11-06；1.3.0 于 2026-11-23 按 1.19.0 补充下表末尾各行。目标为 SillyTavern 前端 UI Extension。官方 `release` 分支只用于定位，实际施工固定到以下提交。
 
-- 版本：`1.18.0`（主验收）及 `1.19.0`（保留支持）
+- 版本：`1.19.0`（1.3.0 起主验收）；`1.18.0`（可加载，1.3.0 未重测）
 - 1.18.0 提交：`51ad27fb86d39a3daca3adaa970375c9670c12df`
 - [1.18.0 固定源码](https://github.com/SillyTavern/SillyTavern/tree/51ad27fb86d39a3daca3adaa970375c9670c12df)
 - 提交：`06bde939fb1e9c4c8d8641d810f0a916b5bce127`
@@ -19,7 +19,7 @@
 | `CHAT_COMPLETION_SETTINGS_READY(generate_data)` | `public/scripts/openai.js:sendOpenAIRequest` | 发送前再次核对 `generate_data.messages` | 源码已核对；最终设置裁剪测试通过 |
 | `GENERATION_STARTED(type,options,dryRun)` | `public/script.js:Generate` | 区分预览、正常、重生成、候选、静默和代写用户 | 源码已核对 |
 | `MESSAGE_RECEIVED(id,type)` / `GENERATION_ENDED` / `GENERATION_STOPPED` | `public/script.js:saveReply/StreamingProcessor/hideStopButton/stopGeneration` | 完整回复与生成结束双重确认；失败流检查 `isStopped/isFinished` | 源码已核对；两种事件顺序测试通过 |
-| `chatMetadata.world_info` | `public/scripts/st-context.js`；`public/scripts/world-info.js:getChatLore` | 只读取当前聊天挂载的世界书；不存储插件进度，不调用 `saveMetadata` | 1.18 原生流程确认插件无聊天元数据写入 |
+| `chatMetadata.world_info` | `public/scripts/st-context.js`；`public/scripts/world-info.js:getChatLore` | 只读取当前聊天挂载的世界书 | 源码已核对 |
 | `extensionSettings` / `saveSettingsDebounced()` | `public/scripts/st-context.js` | 全局共享设置与精细范围，保留未知设置字段 | 源码已核对 |
 | `loadWorldInfo(name)` | `public/scripts/world-info.js` | 只读取当前使用世界书，包含空书 | 源码已核对；范围测试通过 |
 | `selected_world_info/world_info.charLore` | `public/scripts/world-info.js:getGlobalLore/getCharacterLore` | 全局与角色附加书；结合角色 `data.extensions.world`、聊天 `world_info`、persona 书构成范围 | 源码已核对 |
@@ -27,6 +27,13 @@
 | `promptManager.messages.collection` | `public/scripts/openai.js`；`public/scripts/PromptManager.js:setChatCompletion` | 核对 `worldInfoBefore/worldInfoAfter` 槽位，排除纯历史同文 | 源码已核对；目标宿主待验 |
 | `hooks.activate/enable/disable/clean/delete` | `public/scripts/extensions.js:callExtensionHook` | 幂等注册、异步初始化、解绑监听与移除界面 | 源码已核对；入口静态检查通过 |
 | `#extensionsMenu` + `Popup` / `POPUP_TYPE.TEXT` | `public/scripts/extensions.js:initExtensions/addExtensionsButtonAndMenu`；`public/scripts/popup.js:Popup` | 在主页面魔术棒菜单添加入口，点击后用宿主弹窗承载管理器面板；关闭弹窗时把同一 DOM 实例移回隐藏宿主。宿主缺少菜单或弹窗 API 时退回 `#extensions_settings2` | 1.18/1.19 源码已核对；模拟页验证菜单项交互；官方 1.18.0 隔离实例验证弹窗入口、关闭回收与再次打开 |
+| `chat[i].extra` / `chat[i].swipe_info[j].extra` | `public/script.js:saveReply/addOneMessage/syncSwipeToMes/saveChat` | 1.3.0：锚点写 `extra.wsm.s`，回复和当前备选写 `extra.wsm.d`；MESSAGE_RECEIVED 后酒馆自动保存 | 1.19.0 实例：流式/非流式/工具调用/群聊均落盘；左右切换备选时 extra 跟随 |
+| 分支 / 检查点 | `public/scripts/bookmarks.js:branchChat/createBranch/createNewBookmark` | 楼层用 `structuredClone` 复制（含 extra），`chat_metadata` 一并复制 | 1.19.0 实例：分支、从备选分支、检查点均带记录；草稿按 base 判断 |
+| `chatMetadata.wsm_draft` + `saveMetadataDebounced()` | `public/scripts/st-context.js`；`public/script.js:saveChat` | 1.3.0：手动冻结草稿 | 1.19.0 实例：刷新后保留，提交后删除 |
+| `CHAT_COMPLETION_SETTINGS_READY` 的 `generate_data.type` | `public/scripts/openai.js:sendOpenAIRequest` | 忽略 `quiet`/`impersonate` 请求的载荷 | 1.19.0 实例：quiet 请求 type 为 `quiet` |
+| `TOOL_CALLS_PERFORMED` | `public/scripts/tool-calling.js`；`public/script.js:Generate` | 工具调用后续请求沿用首个请求的证据 | 1.19.0 实例：流式/非流式均通过 |
+| `streamingProcessor.isStopped/isFinished/abortController.signal.aborted` | `public/script.js:StreamingProcessor` | 停止后的半截回复：GENERATION_STOPPED → ENDED → MESSAGE_RECEIVED（aborted=true） | 1.19.0 实例：停止不写记录 |
+| `world_names` | `public/scripts/world-info.js` | 列出已不存在的范围选择 | 源码已核对 |
 
 上述内部模块只读导入是本项目明确声明的版本依赖，不是跨版本稳定 API。冻结不依赖 Tavern Helper 写世界书接口，因为那会持久改写条目；也不使用私有 DOM 来推测生成结果。
 

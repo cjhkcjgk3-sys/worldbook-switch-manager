@@ -15,6 +15,9 @@ for (const hook of Object.values(manifest.hooks)) {
     if (!new RegExp(`export function ${hook}\\(`).test(entry)) throw new Error(`Missing hook ${hook}`);
 }
 for (const file of await readdir(root)) if (file.endsWith('.js')) execFileSync(process.execPath, ['--check', resolve(root, file)]);
+const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
+const { VERSION } = await import(new URL('../core.js', import.meta.url));
+if (pkg.version !== manifest.version || VERSION !== manifest.version) throw new Error(`Version mismatch: manifest ${manifest.version}, package ${pkg.version}, core ${VERSION}`);
 const contract = JSON.parse(await readFile(resolve(root, 'capability-contract.json'), 'utf8'));
 if (contract.requirements.some(r => !r.id || !r.symbol || !r.owner)) throw new Error('Invalid capability contract');
 console.log('Manifest paths, lifecycle exports, JavaScript syntax and capability contract: PASS');

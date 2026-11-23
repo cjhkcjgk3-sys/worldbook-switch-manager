@@ -1,4 +1,46 @@
-# 验证记录 · 1.2.0
+# 验证记录 · 1.3.0
+
+日期：2026-11-23。环境：官方 SillyTavern 1.19.0（`06bde93`）独立克隆、独立数据目录与端口；本地模拟 OpenAI 兼容服务（流式/非流式/工具调用/失败/慢速）；无头 Chrome 驱动真实前端；酒馆助手（JS-Slash-Runner 4.12.2）同时加载。没有接触用户自己的酒馆，没有调用付费模型。
+
+## 第一步：可行性验证（写代码前）
+
+用探针扩展在真实 1.19.0 上验证新模型的前提，结果见 `feasibility-1.19-results.json`：
+
+| 前提 | 结果 |
+| --- | --- |
+| MESSAGE_RECEIVED 时写入 `mes.extra`、`swipe_info[i].extra`、用户消息 extra，随后自动落盘（流式、非流式、工具调用、群聊） | 通过 |
+| 新备选在 GENERATION_STARTED 前已复制 extra，可清除继承；左右切换、`/delswipe` 后 extra 与显示的备选一致 | 通过 |
+| 重新生成：STARTED 后才删除旧回复；继续：type 为 `continue`，`send_date` 会变（不能用作身份） | 通过 |
+| 工具调用：后续请求以 STARTED('normal') 开始，激活条目可能变少 | 通过（据此沿用首个请求证据） |
+| quiet 请求：CCSR 的 type 为 `quiet`；在其他插件的 MESSAGE_RECEIVED 中发起时，它的 ENDED 先于本插件的 RECEIVED | 通过（据此改为计数嵌套） |
+| 停止：STOPPED → ENDED → RECEIVED，此时 `abortController.signal.aborted` 为真 | 通过 |
+| 失败：无 RECEIVED，只有 ENDED | 通过 |
+| 编辑、取消编辑、隐藏不丢 extra；隐藏无事件 | 通过 |
+| `chatMetadata` 草稿落盘；分支/检查点复制楼层 extra 与 metadata；从备选分支取所选备选 | 通过（首次脚本未造出备选，补测通过） |
+| 打开分支再回主线、刷新后 extra 恢复；`/cut` 中间、`/del`、批量删到底 | 通过 |
+| 酒馆助手 `setChatMessages`/`createChatMessages` 运行中保留 extra | 通过（源码显示传 `extra` 时整体替换，需注意） |
+| Text Completion、`generateRaw`、SillyDroid、MVU、记忆插件 | 未测 |
+
+由此调整的设计：在 MESSAGE_RECEIVED 直接提交；用停止标志与 abort 信号识别半截回复；工具调用沿用首个请求；忽略所有 dryRun；不用 `send_date`，改用自生成 id 与消息对象引用；草稿用快照 id 判断是否属于当前位置；依赖酒馆自身保存。
+
+## 第二步：实现后的检查
+
+| 检查 | 结果 | 范围 |
+| --- | --- | --- |
+| `npm test` | 67/67 通过 | 纯规则、时间线推导、模拟 1.19 宿主的场景（备选、重新生成、继续、20→16 回退、中间删楼、分支/检查点、刷新、停止/失败、工具调用、并行 quiet、Text Completion 污染、隐藏消息、AI 连续回复、群聊、草稿跟随时间线、清除数据、旧聊天、特殊书名）、适配器 |
+| `npm run check` | 通过 | manifest/package/core 版本一致、钩子、语法、能力合同 |
+| 官方 1.19.0 隔离实例端到端 `tests/e2e/e2e.mjs` | 52/52 通过 | 见 `e2e-1.19-results.json`；以模拟服务收到的真实请求里是否含条目标记为准 |
+| 模拟页 Chromium 1280/390/320 | 通过 | `browser-results.json` |
+| 压力 | 通过 | 4 万楼聊天 + 1 万条目扫描 p95 约 5ms；其余见 `stress-results.json` |
+| 1.19.0 实例面板 1280/390/320 截图 | 标题、版本、酒馆版本正确；面板无横向溢出（320 宽下酒馆自身右侧栏有溢出，与本插件无关） | |
+
+## 未验证
+
+用户自己的酒馆与真实模型；Text Completion 后端；SillyDroid 手机实机；MVU、记忆类插件与本插件同时写 extra；1.18.x 上的 1.3.0。
+
+---
+
+# 验证记录 · 1.2.0（历史）
 
 日期：2026-11-06。1.2.0 只调整入口：管理器面板改由主页面魔术棒菜单打开，冷却/范围/冻结规则不变。1.1.0 起的会话状态约定继续有效：只保存全局规则；会话进度不落盘，切换聊天、刷新页面或编辑/删除历史即重置。
 

@@ -4,7 +4,7 @@
     "sillytavern": "1.18.0",
     "tavernHelper": null
   },
-  "supported": "SillyTavern 1.18.x and 1.19.x stable; source baselines 51ad27fb86d39a3daca3adaa970375c9670c12df and 06bde939fb1e9c4c8d8641d810f0a916b5bce127",
+  "supported": "SillyTavern 1.19.x stable (verified on 1.19.0, 06bde939fb1e9c4c8d8641d810f0a916b5bce127); 1.18.x expected to run but not re-tested for 1.3.0",
   "requirements": [
     {
       "id": "host-context",
@@ -61,6 +61,34 @@
       "symbol": "DOM #extensionsMenu + SillyTavern.getContext().Popup / POPUP_TYPE.TEXT",
       "required": false,
       "fallback": "extensions_settings2 panel entry"
+    },
+    {
+      "id": "message-extra-persistence",
+      "owner": "sillytavern",
+      "symbol": "chat[].extra / chat[].swipe_info[].extra saved after MESSAGE_RECEIVED",
+      "required": true,
+      "fallback": null
+    },
+    {
+      "id": "chat-metadata-draft",
+      "owner": "sillytavern",
+      "symbol": "chatMetadata + saveMetadataDebounced",
+      "required": true,
+      "fallback": "saveMetadata"
+    },
+    {
+      "id": "payload-request-type",
+      "owner": "sillytavern",
+      "symbol": "CHAT_COMPLETION_SETTINGS_READY generate_data.type",
+      "required": false,
+      "fallback": "Text Completion: overlapping side requests skip the round"
+    },
+    {
+      "id": "tool-continuation",
+      "owner": "sillytavern",
+      "symbol": "eventTypes.TOOL_CALLS_PERFORMED",
+      "required": false,
+      "fallback": "continuation counted from its own payload only"
     }
   ]
 }
