@@ -88,7 +88,7 @@ async function initialize() {
             if (!isCompatibleVersion(version.pkgVersion)) {
                 throw new Error(`当前版本 ${version.pkgVersion ?? '未知'} 过低；此扩展需要 SillyTavern 1.18.0 或更高版本。`);
             }
-            console.warn(`世界书自动开关管理器：当前酒馆版本 (${version.pkgVersion}) 未在 1.18/1.19 正式版核对列表中，将尝试通过能力契约检查进行兼容运行。`);
+            console.warn(`世界书自动开关管理器：当前酒馆版本 (${version.pkgVersion}) 未在 1.18/1.19 正式版核对列表中，将尝试通过能力契约检查进行兼容运行。本版本主要在 1.19 上验证。`);
         }
         const [wi, regex, openai] = await Promise.all([
             import('/scripts/world-info.js'),
@@ -101,6 +101,7 @@ async function initialize() {
         }
         const getContext = () => globalThis.SillyTavern.getContext();
         manager = new Manager(getContext, createAdapter(wi, regex, openai), () => ui?.render());
+        manager.hostVersion = version.pkgVersion ?? '';
         manager.start();
         const ctx = getContext();
         const menu = document.querySelector('#extensionsMenu');

@@ -1,4 +1,4 @@
-import { entryKey, hasSelection, managed, setEntrySelection, integer } from './core.js';
+import { entryKey, hasSelection, managed, setEntrySelection, integer, selectionOf, VERSION } from './core.js';
 
 function el(tag, text, className) {
     const node = document.createElement(tag);
@@ -42,12 +42,18 @@ export function mountUI(manager, target, { open = false } = {}) {
     const body = el('div', undefined, 'wsm-body'); drawer.append(body);
     const enabled = checkbox('启用管理器', manager.settings.enabled, enabled => manager.updateSettings({ enabled }));
     const automatic = checkbox('成功注入后自动冷却', manager.settings.automatic, automatic => manager.updateSettings({ automatic }));
+    const includeConstant = checkbox('常驻（蓝灯）条目也参与自动冷却', manager.settings.includeConstant, includeConstant => manager.updateSettings({ includeConstant }));
+    const aiTurns = checkbox('AI 连续回复也算一回合', manager.settings.aiTurns, aiTurns => manager.updateSettings({ aiTurns }));
     const delay = numberField('延迟回合', 0, manager.settings.delay, delay => manager.updateSettings({ delay }));
     const cooldown = numberField('冷却回合', 1, manager.settings.cooldown, cooldown => manager.updateSettings({ cooldown }));
     const rules = el('div', undefined, 'wsm-rules');
     rules.append(delay.wrap, cooldown.wrap);
     const summary = el('p', '', 'wsm-scope'); summary.setAttribute('role', 'status');
     const notice = el('p', '', 'wsm-notice'); notice.setAttribute('role', 'status');
+    const storageNotice = el('div', undefined, 'wsm-notice');
+    storageNotice.append(el('p', '从 1.3.0 起，冷却和手动冻结记录保存在聊天楼层里：切换备选回复、开分支、删楼回退或刷新页面后，都会按当前看得到的楼层恢复。导出或分享聊天文件时会带上这些记录（只有世界书名和条目编号）。'),
+        button('知道了', () => manager.updateSettings({ storageNoticeSeen: true })));
+    const orphans = el('div', undefined, 'wsm-orphans');
     const purpose = el('select', undefined, 'text_pole');
     purpose.setAttribute('aria-label', '选择用途');
     for (const [value, label] of [['scope', '设置自动管理范围'], ['manual', '选择临时冻结条目']]) {
@@ -82,7 +88,7 @@ export function mountUI(manager, target, { open = false } = {}) {
     }
     function isSelected(e) {
         return purpose.value === 'manual' ? manualKeys.has(entryKey(e.world, e.uid)) :
-            manager.settings.selection[e.world] === '*' || manager.settings.selection[e.world]?.includes(String(e.uid));
+            selectionOf(manager.settings, e.world) === '*' || Boolean(selectionOf(manager.settings, e.world)?.includes(String(e.uid)));
     }
     function selectEntry(e, selected) {
         if (purpose.value === 'manual') {
@@ -103,7 +109,7 @@ export function mountUI(manager, target, { open = false } = {}) {
             if (purpose.value === 'manual') {
                 for (const e of entries) { const key = entryKey(world, e.uid); selected ? manualKeys.add(key) : manualKeys.delete(key); }
             } else {
-                const existing = manager.settings.selection[world];
+                const existing = selectionOf(manager.settings, world);
                 // Preserve the future-entry semantics of a whole-book selection.
                 if (selected && existing === '*') continue;
                 const values = new Set(existing === '*' ? grouped.get(world).map(e => String(e.uid)) : existing ?? []);
@@ -123,9 +129,33 @@ export function mountUI(manager, target, { open = false } = {}) {
         }),
         button('刷新世界书', () => manager.refresh()),
     );
-    body.append(enabled.wrap, automatic.wrap, rules, summary, notice, purpose, hint, search, toolbar, manualActions, list,
-        el('p', '冷却与手动冻结仅在当前会话有效；切换聊天、刷新页面或修改历史时重置。', 'wsm-help'),
-        el('p', '状态显示下一次新回合；重新生成沿用原回合。解除手动冻结后，自动冷却仍可能生效。', 'wsm-help'));
+    const dataActions = el('div', undefined, 'wsm-actions');
+    const clearButton = button('清除本聊天插件数据', async () => {
+        const ctx = manager.context();
+        const text = '将删除当前聊天所有楼层（含备选回复）里本插件写入的冷却记录和手动冻结草稿，不影响世界书和聊天内容。确定吗？';
+        const ok = typeof ctx.callGenericPopup === 'function' && ctx.POPUP_TYPE?.CONFIRM !== undefined
+            ? await ctx.callGenericPopup(text, ctx.POPUP_TYPE.CONFIRM) : globalThis.confirm(text);
+        if (ok) manager.clearChatData();
+    });
+    dataActions.append(clearButton);
+    const versionNote = el('p', '', 'wsm-help');
+    body.append(storageNotice, enabled.wrap, automatic.wrap, includeConstant.wrap, aiTurns.wrap, rules, summary, notice, orphans, purpose, hint, search, toolbar, manualActions, list,
+        el('p', '一个用户消息开启一回合（隐藏的也算）；同一回合内的备选回复、重新生成、继续都沿用该回合。状态显示下一次新回合。解除手动冻结后，自动冷却仍可能生效。', 'wsm-help'),
+        dataActions, versionNote);
+    function renderOrphans() {
+        const known = manager.adapter.allBooks?.();
+        const stale = known ? Object.keys(manager.settings.selection).filter(world => !known.includes(world)) : [];
+        orphans.replaceChildren();
+        orphans.hidden = !stale.length;
+        if (!stale.length) return;
+        orphans.className = 'wsm-notice wsm-orphans';
+        orphans.append(el('p', `自动管理范围里有 ${stale.length} 本已不存在的世界书：${stale.join('、')}。它们不会生效，但会让“精细管理”保持开启。`),
+            button('清理失效选择', () => {
+                const selection = { ...manager.settings.selection };
+                for (const world of stale) delete selection[world];
+                manager.updateSettings({ selection });
+            }));
+    }
     function render() {
         const focusToken = document.activeElement?.dataset.wsmFocus;
         if (session !== manager.sessionRevision) {
@@ -142,16 +172,22 @@ export function mountUI(manager, target, { open = false } = {}) {
         }
         enabled.input.checked = manager.settings.enabled;
         automatic.input.checked = manager.settings.automatic;
+        includeConstant.input.checked = manager.settings.includeConstant;
+        aiTurns.input.checked = manager.settings.aiTurns;
+        storageNotice.hidden = Boolean(manager.settings.storageNoticeSeen);
+        versionNote.textContent = `版本 ${VERSION}` + (manager.hostVersion ? ` · 酒馆 ${manager.hostVersion}` : '') + (manager.hostVersion && !/^1\.19\./.test(manager.hostVersion) ? '（本版本主要在 1.19 上验证）' : '');
+        clearButton.disabled = manager.busy || !manager.context().getCurrentChatId();
+        renderOrphans();
         delay.input.value = manager.settings.delay;
         cooldown.input.value = manager.settings.cooldown;
-        summary.textContent = `${manager.settings.enabled ? '管理已启用' : '管理已暂停'} · ${hasSelection(manager.settings) ? '精细管理：仅指定世界书或条目' : '全部管理：当前使用的所有条目'} · 已完成 ${manager.state.clock} 回合`;
-        notice.textContent = manager.error || manager.evidenceWarning || manager.state.notice || '';
+        summary.textContent = `${manager.settings.enabled ? '管理已启用' : '管理已暂停'} · ${hasSelection(manager.settings) ? '精细管理：仅指定世界书或条目' : '全部管理：当前使用的所有条目'} · 下一回合：第 ${manager.view.round} 回合${manager.view.draft ? ' · 有待生效的手动冻结' : ''}`;
+        notice.textContent = manager.error || manager.evidenceWarning || manager.notice || '';
         notice.hidden = !notice.textContent;
         hint.textContent = purpose.value === 'scope' ? '清空精细选择 = 恢复默认管理全部。整本选择会包含以后新增的条目。' : '此处选择只用于临时操作，不会改变自动管理范围。手动冻结从下一次新回合起计时。';
         manualActions.hidden = purpose.value !== 'manual';
         const keys = validManualKeys();
         selectedCount.textContent = `已选 ${keys.length} 个当前条目`;
-        freezeButton.disabled = thawButton.disabled = !keys.length || !manager.context().getCurrentChatId() || Boolean(manager.pending);
+        freezeButton.disabled = thawButton.disabled = !keys.length || !manager.context().getCurrentChatId() || manager.busy;
         for (const [world, node] of bookNodes) if (node.open) expanded.add(world); else expanded.delete(world);
         bookNodes.clear(); list.replaceChildren();
         const visible = new Map();
@@ -175,7 +211,7 @@ export function mountUI(manager, target, { open = false } = {}) {
             const heading = el('summary', `${world} · ${all.length} 条`);
             book.append(heading);
             const entire = checkbox(purpose.value === 'scope' ? '整本管理（含新增条目）' : '选择本书全部条目',
-                purpose.value === 'scope' ? manager.settings.selection[world] === '*' : Boolean(all.length && all.every(isSelected)), selected => {
+                purpose.value === 'scope' ? selectionOf(manager.settings, world) === '*' : Boolean(all.length && all.every(isSelected)), selected => {
                     if (purpose.value === 'scope') {
                         if (selected) manager.settings.selection[world] = '*'; else delete manager.settings.selection[world];
                         manager.updateSettings({});
@@ -185,7 +221,7 @@ export function mountUI(manager, target, { open = false } = {}) {
                     }
                 });
             entire.input.dataset.wsmFocus = `book:${world}`;
-            if (purpose.value === 'scope' && Array.isArray(manager.settings.selection[world])) entire.input.indeterminate = true;
+            if (purpose.value === 'scope' && Array.isArray(selectionOf(manager.settings, world))) entire.input.indeterminate = true;
             book.append(entire.wrap);
             const limit = limits.get(world) ?? 100;
             for (const e of (book.open ? entries.slice(0, limit) : [])) {
@@ -196,7 +232,8 @@ export function mountUI(manager, target, { open = false } = {}) {
                 const s = manager.entryStatus(e);
                 const reasons = [];
                 if (e.disable) reasons.push('原本已禁用');
-                if (!managed(manager.settings, e.world, e.uid)) reasons.push('不参与自动管理');
+                if (e.constant && !manager.settings.includeConstant) reasons.push('常驻条目，不自动冷却');
+                else if (!managed(manager.settings, e.world, e.uid, Boolean(e.constant))) reasons.push('不参与自动管理');
                 if (s.delay) reasons.push(`延迟剩余 ${s.delay} 回合`);
                 if (s.cooldown) reasons.push(`自动冷却剩余 ${s.cooldown} 回合`);
                 if (s.manual) reasons.push(`手动冻结剩余 ${s.manual} 回合`);

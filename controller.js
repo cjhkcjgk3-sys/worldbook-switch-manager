@@ -1,4 +1,4 @@
-import { ID, settingsWithDefaults, status, managed, entryKey, promptText, integer } from './core.js';
+import { ID, settingsWithDefaults, status, managed, entryKey, promptText, integer, normalizeSelection } from './core.js';
 import { DRAFT, derive, nextRound, draftFor, applyDraft, buildStart, readStart, writeStart, writeDelta, clearInherited, stripAll, findAnchor, isReply } from './timeline.js';
 
 const EVENTS = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED'];
@@ -100,6 +100,7 @@ export class Manager {
     }
     touch() { this.viewCache = null; this.onChange(); }
     updateSettings(patch) {
+        if (patch && Object.hasOwn(patch, 'selection')) patch = { ...patch, selection: normalizeSelection(patch.selection) };
         Object.assign(this.settings, patch);
         this.context().saveSettingsDebounced();
         this.touch();
