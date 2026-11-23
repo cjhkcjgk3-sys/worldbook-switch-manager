@@ -27,7 +27,7 @@
         "wsm": {
           "v": 1,
           "s": {
-            "id": "b53633f5-9a49-4992-900c-70b9925a7c79",
+            "id": "5073afe0-9e85-4e92-a44b-735f34024bbf",
             "round": 4,
             "auto": {},
             "manual": {}
@@ -40,11 +40,11 @@
         "reasoning": "",
         "reasoning_duration": null,
         "reasoning_signature": null,
-        "time_to_first_token": 11,
+        "time_to_first_token": 10,
         "wsm": {
           "v": 1,
           "d": {
-            "anchor": "b53633f5-9a49-4992-900c-70b9925a7c79",
+            "anchor": "5073afe0-9e85-4e92-a44b-735f34024bbf",
             "round": 4,
             "inj": [
               [
@@ -64,11 +64,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #66 to: dragon a",
+      "mes": "mock reply #141 to: dragon a",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+          "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
           "round": 1,
           "inj": [],
           "delay": 0,
@@ -80,7 +80,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+            "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
             "round": 1,
             "inj": [
               [
@@ -111,7 +111,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+            "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
             "round": 1,
             "inj": [],
             "delay": 0,
@@ -134,11 +134,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #66 to: dragon a",
+      "mes": "mock reply #141 to: dragon a",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+          "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
           "round": 1,
           "inj": [],
           "delay": 0,
@@ -150,7 +150,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "f806cefb-8525-454b-9232-d786cadb1c73",
+            "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
             "round": 1,
             "inj": [],
             "delay": 0,
@@ -173,11 +173,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #71 to: dragon r mo",
+      "mes": "mock reply #146 to: dragon r m",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "08611ea1-b77d-4a3a-b963-abbd6d81cdbb",
+          "anchor": "49e0515e-e11e-458a-a55a-b7754ec3e618",
           "round": 1,
           "inj": [
             [
@@ -210,7 +210,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "08611ea1-b77d-4a3a-b963-abbd6d81cdbb",
+            "anchor": "49e0515e-e11e-458a-a55a-b7754ec3e618",
             "round": 1,
             "inj": [
               [
@@ -309,7 +309,7 @@
   {
     "name": "E7.checkpoint_created",
     "pass": true,
-    "info": "wsm-e2e-checkpoint-1795412854190"
+    "info": "wsm-e2e-checkpoint-1795416021873"
   },
   {
     "name": "E7.checkpoint_round2_cooled",
@@ -380,12 +380,12 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #104 to: dragon aft",
+      "mes": "mock reply #179 to: dragon aft",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "b281a133-21b4-4624-8943-17c81fda0f9b",
-          "round": 2,
+          "anchor": "4e74fec8-1ef4-430b-875b-40ad2349f6b7",
+          "round": 1,
           "inj": [
             [
               "WSMTest",
@@ -401,8 +401,8 @@
         {
           "v": 1,
           "d": {
-            "anchor": "b281a133-21b4-4624-8943-17c81fda0f9b",
-            "round": 2,
+            "anchor": "4e74fec8-1ef4-430b-875b-40ad2349f6b7",
+            "round": 1,
             "inj": [
               [
                 "WSMTest",
@@ -426,7 +426,7 @@
         "w": {
           "v": 1,
           "s": {
-            "id": "6d402da3-6764-4cbd-814e-596de7ec2a29",
+            "id": "0559b043-31b9-4b48-a1b0-3529e452e674",
             "round": 1,
             "auto": {},
             "manual": {}
@@ -440,11 +440,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #107 to: MOCKTOOL d",
+        "mes": "mock reply #182 to: MOCKTOOL d",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "6d402da3-6764-4cbd-814e-596de7ec2a29",
+            "anchor": "0559b043-31b9-4b48-a1b0-3529e452e674",
             "round": 1,
             "inj": [
               [
@@ -477,7 +477,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "6d402da3-6764-4cbd-814e-596de7ec2a29",
+              "anchor": "0559b043-31b9-4b48-a1b0-3529e452e674",
               "round": 1,
               "inj": [
                 [
@@ -523,7 +523,7 @@
         "w": {
           "v": 1,
           "s": {
-            "id": "de1d714e-96f7-4905-8c9d-73229c513568",
+            "id": "c6f63ff7-2b07-4917-a972-7e27b29d38fd",
             "round": 1,
             "auto": {},
             "manual": {}
@@ -537,11 +537,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #110 to: MOCKTOOL d",
+        "mes": "mock reply #185 to: MOCKTOOL d",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "de1d714e-96f7-4905-8c9d-73229c513568",
+            "anchor": "c6f63ff7-2b07-4917-a972-7e27b29d38fd",
             "round": 1,
             "inj": [
               [
@@ -574,7 +574,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "de1d714e-96f7-4905-8c9d-73229c513568",
+              "anchor": "c6f63ff7-2b07-4917-a972-7e27b29d38fd",
               "round": 1,
               "inj": [
                 [
@@ -643,7 +643,7 @@
     "name": "E12.draft_saved",
     "pass": true,
     "info": {
-      "integrity": "d1dce76b-eb45-4a87-8df0-b138f3d90925",
+      "integrity": "982ab604-1624-4e7e-a83f-c8ecf7f222ff",
       "note_prompt": "",
       "note_interval": 1,
       "note_position": 1,
@@ -656,7 +656,8 @@
       "tainted": true,
       "lastInContextMessageId": 0,
       "wsm_draft": {
-        "base": "7cc49917-04fe-44de-b330-4b85069ede0e",
+        "base": "304a5b51-24c3-4e2e-a55b-e34e4d4bd99c",
+        "after": 1,
         "ops": {
           "[\"WSMTest\",\"2\"]": [
             2,
@@ -679,7 +680,7 @@
       "wsm": {
         "v": 1,
         "s": {
-          "id": "fc30fdac-dd10-4d00-8163-9469ed13bf53",
+          "id": "03832b4e-8597-42d2-bac4-819b54935b11",
           "round": 2,
           "auto": {
             "[\"Eldoria\",\"0\"]": {
@@ -744,7 +745,7 @@
       },
       {
         "u": false,
-        "mes": "[]",
+        "mes": "Hi from probebot",
         "w": null,
         "sid": 0,
         "si": [
@@ -757,7 +758,7 @@
         "w": {
           "v": 1,
           "s": {
-            "id": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+            "id": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
             "round": 1,
             "auto": {},
             "manual": {}
@@ -766,11 +767,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #128 to: dragon gro",
+        "mes": "mock reply #203 to: dragon gro",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+            "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
             "round": 1,
             "inj": [
               [
@@ -787,7 +788,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+              "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
               "round": 1,
               "inj": [
                 [
@@ -803,11 +804,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #129 to: dragon gro",
+        "mes": "mock reply #204 to: dragon gro",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+            "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
             "round": 1,
             "inj": [
               [
@@ -824,7 +825,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "ae0c3311-03e9-4b51-84a7-9d8df8cc0b54",
+              "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
               "round": 1,
               "inj": [
                 [
