@@ -211,3 +211,5 @@ ok('E13.group_next_round_cooled', reqs.length >= 2 && reqs.every(q => !has(q, DR
 fs.writeFileSync(new URL('../../docs/e2e-1.19-results.json', import.meta.url), JSON.stringify(results, null, 2));
 console.log(`\n${results.filter(x => x.pass).length}/${results.length} passed`);
 await browser.close();
+// Non-zero exit when any check failed, so CI cannot mistake a failing run for success.
+process.exitCode = results.every(x => x.pass) && results.length ? 0 : 1;

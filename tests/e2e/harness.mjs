@@ -18,7 +18,14 @@ export async function load(page) {
 }
 export async function waitReady(page) {
   await page.waitForFunction(() => { try { return !!window.SillyTavern.getContext().characters?.length; } catch { return false; } }, null, { timeout: 120000 });
-  await sleep(1500);
+  // Wait until the extension under test has finished initializing (or reported why it did not).
+  const ready = await page.waitForFunction(() => {
+    if (document.querySelector('#worldbook-switch-manager') && window.SillyTavern.getContext().extensionSettings.worldbook_switch_manager) return 'ok';
+    const failure = [...document.querySelectorAll('.wsm.wsm-notice')].map(n => n.textContent).find(t => t.includes('未启动'));
+    return failure || false;
+  }, null, { timeout: 60000 }).then(h => h.jsonValue()).catch(() => 'timeout: extension did not initialize within 60s');
+  if (ready !== 'ok') throw new Error(`worldbook-switch-manager not ready: ${ready}`);
+  await sleep(500);
 }
 export async function connect(page) {
   await page.evaluate(() => { document.querySelector('#api_button_openai')?.click(); });
