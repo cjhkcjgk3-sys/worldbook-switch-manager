@@ -27,7 +27,7 @@
         "wsm": {
           "v": 1,
           "s": {
-            "id": "5073afe0-9e85-4e92-a44b-735f34024bbf",
+            "id": "b650eb90-fc89-4c2f-a866-9150b96a44fa",
             "round": 4,
             "auto": {},
             "manual": {}
@@ -44,7 +44,7 @@
         "wsm": {
           "v": 1,
           "d": {
-            "anchor": "5073afe0-9e85-4e92-a44b-735f34024bbf",
+            "anchor": "b650eb90-fc89-4c2f-a866-9150b96a44fa",
             "round": 4,
             "inj": [
               [
@@ -64,11 +64,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #141 to: dragon a",
+      "mes": "mock reply #70 to: dragon a",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
+          "anchor": "a2c814f7-5078-468e-b90c-67e28808c8a6",
           "round": 1,
           "inj": [],
           "delay": 0,
@@ -80,7 +80,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
+            "anchor": "a2c814f7-5078-468e-b90c-67e28808c8a6",
             "round": 1,
             "inj": [
               [
@@ -111,7 +111,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
+            "anchor": "a2c814f7-5078-468e-b90c-67e28808c8a6",
             "round": 1,
             "inj": [],
             "delay": 0,
@@ -134,11 +134,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #141 to: dragon a",
+      "mes": "mock reply #70 to: dragon a",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
+          "anchor": "a2c814f7-5078-468e-b90c-67e28808c8a6",
           "round": 1,
           "inj": [],
           "delay": 0,
@@ -150,7 +150,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "229bdf68-b4cf-4cb4-87c2-b0f0b6d607a1",
+            "anchor": "a2c814f7-5078-468e-b90c-67e28808c8a6",
             "round": 1,
             "inj": [],
             "delay": 0,
@@ -173,11 +173,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #146 to: dragon r m",
+      "mes": "mock reply #75 to: dragon r mo",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "49e0515e-e11e-458a-a55a-b7754ec3e618",
+          "anchor": "512a3769-3668-4ce2-b43b-1866403dddb5",
           "round": 1,
           "inj": [
             [
@@ -210,7 +210,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "49e0515e-e11e-458a-a55a-b7754ec3e618",
+            "anchor": "512a3769-3668-4ce2-b43b-1866403dddb5",
             "round": 1,
             "inj": [
               [
@@ -309,7 +309,7 @@
   {
     "name": "E7.checkpoint_created",
     "pass": true,
-    "info": "wsm-e2e-checkpoint-1795416021873"
+    "info": "wsm-e2e-checkpoint-1795417311191"
   },
   {
     "name": "E7.checkpoint_round2_cooled",
@@ -380,11 +380,11 @@
     "pass": true,
     "info": {
       "u": false,
-      "mes": "mock reply #179 to: dragon aft",
+      "mes": "mock reply #108 to: dragon aft",
       "w": {
         "v": 1,
         "d": {
-          "anchor": "4e74fec8-1ef4-430b-875b-40ad2349f6b7",
+          "anchor": "c2e02dc7-e855-4122-a6e1-b350ddbd9761",
           "round": 1,
           "inj": [
             [
@@ -401,7 +401,7 @@
         {
           "v": 1,
           "d": {
-            "anchor": "4e74fec8-1ef4-430b-875b-40ad2349f6b7",
+            "anchor": "c2e02dc7-e855-4122-a6e1-b350ddbd9761",
             "round": 1,
             "inj": [
               [
@@ -426,7 +426,7 @@
         "w": {
           "v": 1,
           "s": {
-            "id": "0559b043-31b9-4b48-a1b0-3529e452e674",
+            "id": "83d5a3e8-9c4c-4305-a993-1504c5183525",
             "round": 1,
             "auto": {},
             "manual": {}
@@ -440,11 +440,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #182 to: MOCKTOOL d",
+        "mes": "mock reply #111 to: MOCKTOOL d",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "0559b043-31b9-4b48-a1b0-3529e452e674",
+            "anchor": "83d5a3e8-9c4c-4305-a993-1504c5183525",
             "round": 1,
             "inj": [
               [
@@ -477,7 +477,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "0559b043-31b9-4b48-a1b0-3529e452e674",
+              "anchor": "83d5a3e8-9c4c-4305-a993-1504c5183525",
               "round": 1,
               "inj": [
                 [
@@ -523,7 +523,7 @@
         "w": {
           "v": 1,
           "s": {
-            "id": "c6f63ff7-2b07-4917-a972-7e27b29d38fd",
+            "id": "b0f28d90-47ad-4f97-a868-4f5f514f527e",
             "round": 1,
             "auto": {},
             "manual": {}
@@ -537,11 +537,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #185 to: MOCKTOOL d",
+        "mes": "mock reply #114 to: MOCKTOOL d",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "c6f63ff7-2b07-4917-a972-7e27b29d38fd",
+            "anchor": "b0f28d90-47ad-4f97-a868-4f5f514f527e",
             "round": 1,
             "inj": [
               [
@@ -574,7 +574,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "c6f63ff7-2b07-4917-a972-7e27b29d38fd",
+              "anchor": "b0f28d90-47ad-4f97-a868-4f5f514f527e",
               "round": 1,
               "inj": [
                 [
@@ -643,7 +643,7 @@
     "name": "E12.draft_saved",
     "pass": true,
     "info": {
-      "integrity": "982ab604-1624-4e7e-a83f-c8ecf7f222ff",
+      "integrity": "a017d54d-55da-4cea-adbe-f64e520b5ded",
       "note_prompt": "",
       "note_interval": 1,
       "note_position": 1,
@@ -656,7 +656,7 @@
       "tainted": true,
       "lastInContextMessageId": 0,
       "wsm_draft": {
-        "base": "304a5b51-24c3-4e2e-a55b-e34e4d4bd99c",
+        "base": "86d7401b-3670-40de-8c1e-2ff6bfca6418",
         "after": 1,
         "ops": {
           "[\"WSMTest\",\"2\"]": [
@@ -680,7 +680,7 @@
       "wsm": {
         "v": 1,
         "s": {
-          "id": "03832b4e-8597-42d2-bac4-819b54935b11",
+          "id": "06dfb2be-18bb-400a-ac20-7f2dcb878fae",
           "round": 2,
           "auto": {
             "[\"Eldoria\",\"0\"]": {
@@ -745,7 +745,7 @@
       },
       {
         "u": false,
-        "mes": "Hi from probebot",
+        "mes": "[]",
         "w": null,
         "sid": 0,
         "si": [
@@ -758,7 +758,7 @@
         "w": {
           "v": 1,
           "s": {
-            "id": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
+            "id": "3b26adc8-132d-4e74-8886-c35598cc4853",
             "round": 1,
             "auto": {},
             "manual": {}
@@ -767,11 +767,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #203 to: dragon gro",
+        "mes": "mock reply #132 to: dragon gro",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
+            "anchor": "3b26adc8-132d-4e74-8886-c35598cc4853",
             "round": 1,
             "inj": [
               [
@@ -788,7 +788,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
+              "anchor": "3b26adc8-132d-4e74-8886-c35598cc4853",
               "round": 1,
               "inj": [
                 [
@@ -804,11 +804,11 @@
       },
       {
         "u": false,
-        "mes": "mock reply #204 to: dragon gro",
+        "mes": "mock reply #133 to: dragon gro",
         "w": {
           "v": 1,
           "d": {
-            "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
+            "anchor": "3b26adc8-132d-4e74-8886-c35598cc4853",
             "round": 1,
             "inj": [
               [
@@ -825,7 +825,7 @@
           {
             "v": 1,
             "d": {
-              "anchor": "99c96f24-9fe5-49ed-9eca-69c7971e617a",
+              "anchor": "3b26adc8-132d-4e74-8886-c35598cc4853",
               "round": 1,
               "inj": [
                 [
