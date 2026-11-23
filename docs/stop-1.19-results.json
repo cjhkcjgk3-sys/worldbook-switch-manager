@@ -1,0 +1,966 @@
+{
+  "host": "SillyTavern 1.19.0",
+  "generatedAt": "2026-11-23T07:00:19.244Z",
+  "results": [
+    {
+      "name": "S1.stopped_partial_has_no_record",
+      "pass": true,
+      "info": {
+        "st": true,
+        "last": {
+          "u": false,
+          "sys": false,
+          "mes": "partial#39 slow slow slo",
+          "s": null,
+          "d": null,
+          "sid": 0,
+          "si": [
+            null
+          ]
+        }
+      }
+    },
+    {
+      "name": "S1.regenerate_injects_and_records",
+      "pass": true,
+      "info": {
+        "regen": [
+          true
+        ],
+        "last": {
+          "u": false,
+          "sys": false,
+          "mes": "mock reply #40 to: drago",
+          "s": null,
+          "d": {
+            "anchor": "f77ed895-4e50-4022-bebf-7cfcc8a1ac66",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          },
+          "sid": 0,
+          "si": [
+            {
+              "anchor": "f77ed895-4e50-4022-bebf-7cfcc8a1ac66",
+              "round": 1,
+              "inj": [
+                [
+                  "Eldoria",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "1"
+                ],
+                [
+                  "Eldoria",
+                  "3"
+                ],
+                [
+                  "WSMTest",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "2"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "S1.next_round_cooled",
+      "pass": true,
+      "info": {
+        "s": {
+          "id": "b4961302-4b71-43db-9107-54a63e348cc2",
+          "round": 2,
+          "auto": {
+            "[\"Eldoria\",\"0\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 1
+            },
+            "[\"Eldoria\",\"1\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 1
+            },
+            "[\"Eldoria\",\"3\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 1
+            },
+            "[\"WSMTest\",\"0\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 1
+            },
+            "[\"Eldoria\",\"2\"]": {
+              "round": 1,
+              "delay": 0,
+              "cooldown": 1
+            }
+          },
+          "manual": {}
+        }
+      }
+    },
+    {
+      "name": "S1.saved_file_matches",
+      "pass": true,
+      "info": [
+        [
+          false,
+          "*You wake wi",
+          false
+        ],
+        [
+          true,
+          "dragon s1",
+          false
+        ],
+        [
+          false,
+          "mock reply #",
+          true
+        ],
+        [
+          true,
+          "dragon s1 ne",
+          false
+        ],
+        [
+          false,
+          "mock reply #",
+          true
+        ]
+      ]
+    },
+    {
+      "name": "S2.swipe_after_stop_records_only_new_swipe",
+      "pass": true,
+      "info": {
+        "u": false,
+        "sys": false,
+        "mes": "mock reply #43 to: drago",
+        "s": null,
+        "d": {
+          "anchor": "b8471333-2846-48a2-b34d-8296d616a1b8",
+          "round": 1,
+          "inj": [
+            [
+              "Eldoria",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "1"
+            ],
+            [
+              "Eldoria",
+              "3"
+            ],
+            [
+              "WSMTest",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "2"
+            ]
+          ],
+          "delay": 0,
+          "cooldown": 1
+        },
+        "sid": 1,
+        "si": [
+          null,
+          {
+            "anchor": "b8471333-2846-48a2-b34d-8296d616a1b8",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "S2.back_on_stopped_swipe_not_injected",
+      "pass": true,
+      "info": {
+        "u": false,
+        "sys": false,
+        "mes": "partial#42 slow slow slo",
+        "s": null,
+        "d": null,
+        "sid": 0,
+        "si": [
+          null,
+          {
+            "anchor": "b8471333-2846-48a2-b34d-8296d616a1b8",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "S2.next_round_free_because_shown_reply_did_not_inject",
+      "pass": true,
+      "info": {
+        "s": {
+          "id": "80c7cd60-412a-4f23-bc16-0d5c0842e3cf",
+          "round": 2,
+          "auto": {},
+          "manual": {}
+        },
+        "last": {
+          "u": false,
+          "sys": false,
+          "mes": "mock reply #44 to: drago",
+          "s": null,
+          "d": {
+            "anchor": "80c7cd60-412a-4f23-bc16-0d5c0842e3cf",
+            "round": 2,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          },
+          "sid": 0,
+          "si": [
+            {
+              "anchor": "80c7cd60-412a-4f23-bc16-0d5c0842e3cf",
+              "round": 2,
+              "inj": [
+                [
+                  "WSMTest",
+                  "0"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "S3.continue_completes_and_records",
+      "pass": true,
+      "info": {
+        "cont": [
+          true
+        ],
+        "last": {
+          "u": false,
+          "sys": false,
+          "mes": "partial#45 slow slow slo",
+          "s": null,
+          "d": {
+            "anchor": "95ebd913-dd4e-4062-96e8-9278ad7222b6",
+            "round": 1,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          },
+          "sid": 0,
+          "si": [
+            {
+              "anchor": "95ebd913-dd4e-4062-96e8-9278ad7222b6",
+              "round": 1,
+              "inj": [
+                [
+                  "WSMTest",
+                  "0"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "S3.next_round_cooled",
+      "pass": true,
+      "info": {
+        "id": "236de8f9-3960-4d38-9f46-82e170dea6e3",
+        "round": 2,
+        "auto": {
+          "[\"WSMTest\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          }
+        },
+        "manual": {}
+      }
+    },
+    {
+      "name": "S4.two_stops_no_record",
+      "pass": true,
+      "info": {
+        "a": true,
+        "b": true,
+        "M": [
+          {
+            "u": true,
+            "sys": false,
+            "mes": "dragon s4",
+            "s": null,
+            "d": null
+          },
+          {
+            "u": false,
+            "sys": false,
+            "mes": "partial#49 slow slow slo",
+            "s": null,
+            "d": null,
+            "sid": 0,
+            "si": [
+              null
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "S4.final_regenerate_records",
+      "pass": true,
+      "info": {
+        "u": false,
+        "sys": false,
+        "mes": "mock reply #50 to: drago",
+        "s": null,
+        "d": {
+          "anchor": "12a16875-96cb-4a00-a408-1fbcfef5fd1f",
+          "round": 1,
+          "inj": [
+            [
+              "Eldoria",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "1"
+            ],
+            [
+              "Eldoria",
+              "3"
+            ],
+            [
+              "WSMTest",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "2"
+            ]
+          ],
+          "delay": 0,
+          "cooldown": 1
+        },
+        "sid": 0,
+        "si": [
+          {
+            "anchor": "12a16875-96cb-4a00-a408-1fbcfef5fd1f",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "S4.next_round_cooled",
+      "pass": true,
+      "info": {
+        "id": "8150b9c0-7230-4fe8-a18c-7034ddd51fbd",
+        "round": 2,
+        "auto": {
+          "[\"Eldoria\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"1\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"3\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"WSMTest\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"2\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          }
+        },
+        "manual": {}
+      }
+    },
+    {
+      "name": "S5.partial_kept_without_record",
+      "pass": true,
+      "info": {
+        "u": false,
+        "sys": false,
+        "mes": "partial#52 slow slow slo",
+        "s": null,
+        "d": null,
+        "sid": 0,
+        "si": [
+          null
+        ]
+      }
+    },
+    {
+      "name": "S5.new_message_is_round2_and_dragon_free",
+      "pass": true,
+      "info": {
+        "s": {
+          "id": "afce1783-cec0-4d8c-be48-5b58faaa28a2",
+          "round": 2,
+          "auto": {},
+          "manual": {}
+        },
+        "last": {
+          "u": false,
+          "sys": false,
+          "mes": "mock reply #53 to: drago",
+          "s": null,
+          "d": {
+            "anchor": "afce1783-cec0-4d8c-be48-5b58faaa28a2",
+            "round": 2,
+            "inj": [
+              [
+                "WSMTest",
+                "0"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          },
+          "sid": 0,
+          "si": [
+            {
+              "anchor": "afce1783-cec0-4d8c-be48-5b58faaa28a2",
+              "round": 2,
+              "inj": [
+                [
+                  "WSMTest",
+                  "0"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "S5.round3_cooled",
+      "pass": true,
+      "info": {
+        "id": "2149a6d8-dd9e-4b1e-a116-14312de4c4ad",
+        "round": 3,
+        "auto": {
+          "[\"WSMTest\",\"0\"]": {
+            "round": 2,
+            "delay": 0,
+            "cooldown": 1
+          }
+        },
+        "manual": {}
+      }
+    },
+    {
+      "name": "S6.stopped_swipe_has_no_record",
+      "pass": true,
+      "info": {
+        "u": false,
+        "sys": false,
+        "mes": "partial#56 slow slow slo",
+        "s": null,
+        "d": null,
+        "sid": 1,
+        "si": [
+          {
+            "anchor": "3662224a-201a-4cc7-a19c-c121d113025e",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          },
+          null
+        ]
+      }
+    },
+    {
+      "name": "S6.old_swipe_record_back",
+      "pass": true,
+      "info": {
+        "u": false,
+        "sys": false,
+        "mes": "mock reply #55 to: drago",
+        "s": null,
+        "d": {
+          "anchor": "3662224a-201a-4cc7-a19c-c121d113025e",
+          "round": 1,
+          "inj": [
+            [
+              "Eldoria",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "1"
+            ],
+            [
+              "Eldoria",
+              "3"
+            ],
+            [
+              "WSMTest",
+              "0"
+            ],
+            [
+              "Eldoria",
+              "2"
+            ]
+          ],
+          "delay": 0,
+          "cooldown": 1
+        },
+        "sid": 0,
+        "si": [
+          {
+            "anchor": "3662224a-201a-4cc7-a19c-c121d113025e",
+            "round": 1,
+            "inj": [
+              [
+                "Eldoria",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "1"
+              ],
+              [
+                "Eldoria",
+                "3"
+              ],
+              [
+                "WSMTest",
+                "0"
+              ],
+              [
+                "Eldoria",
+                "2"
+              ]
+            ],
+            "delay": 0,
+            "cooldown": 1
+          },
+          null
+        ]
+      }
+    },
+    {
+      "name": "S6.next_round_cooled",
+      "pass": true,
+      "info": {
+        "id": "a004530f-6363-4b1b-95d1-43414d5a1c62",
+        "round": 2,
+        "auto": {
+          "[\"Eldoria\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"1\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"3\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"WSMTest\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"2\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          }
+        },
+        "manual": {}
+      }
+    },
+    {
+      "name": "S7.stopped_nonstream_no_record",
+      "pass": true,
+      "info": [
+        {
+          "u": false,
+          "sys": false,
+          "mes": "*You wake with a start, ",
+          "s": null,
+          "d": null,
+          "sid": 0,
+          "si": [
+            null
+          ]
+        },
+        {
+          "u": true,
+          "sys": false,
+          "mes": "dragon s7",
+          "s": null,
+          "d": null
+        }
+      ]
+    },
+    {
+      "name": "S7.regenerate_records",
+      "pass": true,
+      "info": {
+        "regen": 1,
+        "M": [
+          {
+            "u": true,
+            "sys": false,
+            "mes": "dragon s7",
+            "s": {
+              "id": "4fcfd425-b4c7-4d07-a3bb-3ddd09b968af",
+              "round": 1,
+              "auto": {},
+              "manual": {}
+            },
+            "d": null
+          },
+          {
+            "u": false,
+            "sys": false,
+            "mes": "mock reply #59 to: drago",
+            "s": null,
+            "d": {
+              "anchor": "4fcfd425-b4c7-4d07-a3bb-3ddd09b968af",
+              "round": 1,
+              "inj": [
+                [
+                  "Eldoria",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "1"
+                ],
+                [
+                  "Eldoria",
+                  "3"
+                ],
+                [
+                  "WSMTest",
+                  "0"
+                ],
+                [
+                  "Eldoria",
+                  "2"
+                ]
+              ],
+              "delay": 0,
+              "cooldown": 1
+            },
+            "sid": 0,
+            "si": [
+              {
+                "anchor": "4fcfd425-b4c7-4d07-a3bb-3ddd09b968af",
+                "round": 1,
+                "inj": [
+                  [
+                    "Eldoria",
+                    "0"
+                  ],
+                  [
+                    "Eldoria",
+                    "1"
+                  ],
+                  [
+                    "Eldoria",
+                    "3"
+                  ],
+                  [
+                    "WSMTest",
+                    "0"
+                  ],
+                  [
+                    "Eldoria",
+                    "2"
+                  ]
+                ],
+                "delay": 0,
+                "cooldown": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "S7.next_round_cooled",
+      "pass": true,
+      "info": {
+        "id": "f5370015-bf1c-49b2-97ab-bf4d10c4548a",
+        "round": 2,
+        "auto": {
+          "[\"Eldoria\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"1\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"3\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"WSMTest\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          },
+          "[\"Eldoria\",\"2\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          }
+        },
+        "manual": {}
+      }
+    },
+    {
+      "name": "S8.stopped_tool_followup_no_record",
+      "pass": true,
+      "info": {
+        "gen": true,
+        "n": 2,
+        "M": [
+          [
+            true,
+            false,
+            "MOCKTOOL dragon s8",
+            false
+          ],
+          [
+            false,
+            true,
+            "<details><summary>Tool c",
+            false
+          ],
+          [
+            false,
+            false,
+            "partial#62 slow slow slo",
+            false
+          ]
+        ]
+      }
+    },
+    {
+      "name": "S8.regenerate_after_tool_stop_records_final_reply",
+      "pass": true,
+      "info": {
+        "regen": [
+          true
+        ],
+        "M": [
+          [
+            false,
+            false,
+            "*You wake with a start, ",
+            null
+          ],
+          [
+            true,
+            false,
+            "MOCKTOOL dragon s8",
+            null
+          ],
+          [
+            false,
+            true,
+            "<details><summary>Tool c",
+            null
+          ],
+          [
+            false,
+            false,
+            "mock reply #63 to: MOCKT",
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "name": "S8.next_round_cooled",
+      "pass": true,
+      "info": {
+        "id": "1759b711-439e-4c58-8213-768b31d6bf9a",
+        "round": 2,
+        "auto": {
+          "[\"WSMTest\",\"0\"]": {
+            "round": 1,
+            "delay": 0,
+            "cooldown": 1
+          }
+        },
+        "manual": {}
+      }
+    }
+  ]
+}
