@@ -109,14 +109,14 @@ function matchKeyInText(text, rawKey, { caseSensitive = false, matchWholeWords =
     const rxMatch = rawKey.match(/^\/(.+)\/([gimsuy]*)$/);
     if (rxMatch) {
         try {
-            const flags = rxMatch[2].replace(/[gy]/g, '');
+            const flags = rxMatch[2];
             const m = new RegExp(rxMatch[1], flags).exec(text);
             return m ? m.index : -1;
         } catch {
             return -1;
         }
     }
-    if (matchWholeWords && /^[A-Za-z0-9_ -]+$/.test(rawKey)) {
+    if (matchWholeWords && rawKey.trim().split(/\s+/).length === 1) {
         const escaped = rawKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const m = new RegExp(`(?<![A-Za-z0-9_])${escaped}(?![A-Za-z0-9_])`, caseSensitive ? '' : 'i').exec(text);
         return m ? m.index : -1;
@@ -133,93 +133,50 @@ function firstKeyMatch(text, keys, opts) {
     }
     return best;
 }
-function secondaryMatched(entry, recentText, opts) {
-    if (!entry.selective || !Array.isArray(entry.keysecondary) || !entry.keysecondary.length) return true;
-    const secKeys = entry.keysecondary.filter(k => typeof k === 'string' && k.trim());
-    if (!secKeys.length) return true;
-    const hits = secKeys.map(k => matchKeyInText(recentText, k, opts) >= 0);
-    const logic = entry.selectiveLogic ?? 0;
-    if (logic === 1) return !hits.every(Boolean);
-    if (logic === 2) return !hits.some(Boolean);
-    if (logic === 3) return hits.every(Boolean);
-    return hits.some(Boolean);
-}
-/** Return selective entries exceeding per-turn capLimit, keeping latest-user > earlier-user > model mentions. */
-export function selectGreenCapVictims(entries, chat, settings, defaults = {}) {
-    if (!settings.enabled || !settings.capEnabled || !Array.isArray(entries) || !Array.isArray(chat) || !chat.length) return [];
+/** Rank only native-accepted candidates. Mentions are a priority hint, never activation eligibility.
+ * No macros are executed, no secondary/probability/group/budget rules are reimplemented.
+ * `used` contains successful, visible same-round reservations (entryKey strings).
+ */
+export function selectGreenCapVictims(entries, chat, settings, defaults = {}, used = new Set()) {
+    if (!settings.enabled || !settings.capEnabled || !Array.isArray(entries)) return [];
     const limit = integer(settings.capLimit ?? 5, 1);
-    const defaultDepth = integer(defaults.scanDepth ?? 2, 1);
     const candidates = new Map();
     let maxDepth = 0;
-    for (let seq = 0; seq < entries.length; seq++) {
-        const e = entries[seq];
-        if (!e || e.disable || e.constant || e.vectorized) continue;
-        if (!managed(settings, e.world, e.uid, false)) continue;
-        if (e.scanDepth === 0) continue;
-        const keys = Array.isArray(e.key) ? e.key : (Array.isArray(e.keys) ? e.keys : []);
-        if (!keys.length) continue;
+    for (const e of entries) {
+        if (!e || e.disable || e.constant || e.vectorized || !managed(settings, e.world, e.uid, false)) continue;
         const key = entryKey(e.world, e.uid);
-        const existing = candidates.get(key);
-        if (existing) {
-            existing.copies.push(e);
-            continue;
-        }
-        const depth = integer(e.scanDepth ?? defaultDepth, 1);
-        if (depth > maxDepth) maxDepth = depth;
-        candidates.set(key, { copies: [e], entry: e, keys, depth, seq });
+        const old = candidates.get(key);
+        if (old) { old.copies.push(e); continue; }
+        // Native eligibility has already been decided, including depth 0 / extra scan sources.
+        const depth = Math.min(1000, integer(e.scanDepth ?? defaults.scanDepth ?? 2, 1));
+        maxDepth = Math.max(maxDepth, depth);
+        candidates.set(key, { key, copies: [e], entry: e, depth, seq: candidates.size });
     }
-    if (candidates.size <= limit) return [];
+    // One bounded array, no per-depth arrays or joined text cache (A05).
     const messages = [];
-    for (let i = chat.length - 1; i >= 0 && messages.length < maxDepth; i--) {
-        const m = chat[i];
-        if (m && !m.is_system) messages.push(m);
+    for (let i = (chat?.length ?? 0) - 1; i >= 0 && messages.length < maxDepth; i--) {
+        if (chat[i] && !chat[i].is_system) messages.push(chat[i]);
     }
-    if (!messages.length) return [];
-    messages.reverse();
-    let lastUserIdx = -1;
-    for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i].is_user) { lastUserIdx = i; break; }
-    }
-    const sliceCache = new Map();
-    const matched = [];
-    for (const c of candidates.values()) {
-        let sliceInfo = sliceCache.get(c.depth);
-        if (!sliceInfo) {
-            const recent = messages.slice(-c.depth);
-            const startOffset = messages.length - recent.length;
-            sliceInfo = { recent, startOffset, recentText: recent.map(m => m.mes ?? '').join('\n') };
-            sliceCache.set(c.depth, sliceInfo);
+    const lastUser = messages.findIndex(m => m.is_user);
+    const ranked = [...candidates.values()].map(c => {
+        let hit = { tier: 3, age: Infinity, pos: Infinity };
+        const keys = Array.isArray(c.entry.key) ? c.entry.key : [];
+        for (let j = 0; j < Math.min(c.depth, messages.length); j++) {
+            const m = messages[j];
+            const pos = firstKeyMatch(m.mes ?? '', keys, {
+                caseSensitive: c.entry.caseSensitive ?? defaults.caseSensitive ?? false,
+                matchWholeWords: c.entry.matchWholeWords ?? defaults.matchWholeWords ?? false,
+            });
+            if (pos < 0) continue;
+            const tier = m.is_user ? (j === lastUser ? 0 : 1) : 2;
+            if (tier < hit.tier || (tier === hit.tier && j < hit.age)) hit = { tier, age: j, pos };
         }
-        const { recent, startOffset, recentText } = sliceInfo;
-        const opts = {
-            caseSensitive: c.entry.caseSensitive ?? defaults.caseSensitive ?? false,
-            matchWholeWords: c.entry.matchWholeWords ?? defaults.matchWholeWords ?? false,
-        };
-        if (!secondaryMatched(c.entry, recentText, opts)) continue;
-        let hit = null;
-        if (lastUserIdx >= startOffset) {
-            const pos = firstKeyMatch(recent[lastUserIdx - startOffset]?.mes ?? '', c.keys, opts);
-            if (pos >= 0) hit = { tier: 0, msgAge: 0, pos };
-        }
-        if (!hit) {
-            for (let j = recent.length - 1; j >= 0; j--) {
-                if (!recent[j].is_user || startOffset + j === lastUserIdx) continue;
-                const pos = firstKeyMatch(recent[j].mes ?? '', c.keys, opts);
-                if (pos >= 0) { hit = { tier: 1, msgAge: recent.length - 1 - j, pos }; break; }
-            }
-        }
-        if (!hit) {
-            for (let j = recent.length - 1; j >= 0; j--) {
-                if (recent[j].is_user) continue;
-                const pos = firstKeyMatch(recent[j].mes ?? '', c.keys, opts);
-                if (pos >= 0) { hit = { tier: 2, msgAge: recent.length - 1 - j, pos }; break; }
-            }
-        }
-        if (hit) matched.push({ copies: c.copies, ...hit, seq: c.seq });
-    }
-    if (matched.length <= limit) return [];
-    matched.sort((a, b) => (a.tier - b.tier) || (a.msgAge - b.msgAge) || (a.pos - b.pos) || (a.seq - b.seq));
-    return matched.slice(limit).flatMap(x => x.copies);
+        return { ...c, ...hit };
+    }).sort((a,b) => a.tier-b.tier || a.age-b.age || a.pos-b.pos || a.seq-b.seq);
+    const keep = new Set(ranked.filter(c => used.has(c.key)).slice(0, limit).map(c => c.key));
+    let remaining = Math.max(0, limit - used.size);
+    for (const c of ranked) if (!used.has(c.key) && remaining > 0) { keep.add(c.key); remaining--; }
+    return ranked.filter(c => !keep.has(c.key)).flatMap(c => c.copies);
 }
 export function promptText(value) {
     if (typeof value === 'string') return value;

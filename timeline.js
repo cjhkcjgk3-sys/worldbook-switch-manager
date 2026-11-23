@@ -6,7 +6,7 @@
  * and reloads. Verified against SillyTavern 1.19.0, see docs/VALIDATION.md.
  *
  *   anchor.extra.wsm.s = { id, round, auto, manual }   state at the start of the round
- *   reply.extra.wsm.d  = { anchor, round, inj, delay, cooldown }   what this reply's request injected
+ *   reply.extra.wsm.d  = { anchor, round, inj, delay, cooldown }   what this reply's request injected; optional cap holds successful native-candidate reservations
  *   chatMetadata.wsm_draft = { base, ops }   manual freezes waiting for the next round
  */
 import { applyInjection, prune, integer } from './core.js';
@@ -59,7 +59,8 @@ export function readStart(m) {
 export function readDelta(m) {
     const d = m?.extra?.[KEY]?.d;
     if (!plain(d) || typeof d.anchor !== 'string' || !Number.isFinite(d.round) || !Array.isArray(d.inj)) return null;
-    return { anchor: d.anchor, round: d.round, inj: d.inj.filter(x => Array.isArray(x) && x.length === 2).map(([w, u]) => [String(w), String(u)]), delay: integer(d.delay), cooldown: integer(d.cooldown, 1) };
+    const cap = Array.isArray(d.cap) ? { cap: d.cap.filter(x => Array.isArray(x) && x.length === 2).map(([w,u]) => [String(w),String(u)]) } : {};
+    return { ...cap, anchor: d.anchor, round: d.round, inj: d.inj.filter(x => Array.isArray(x) && x.length === 2).map(([w, u]) => [String(w), String(u)]), delay: integer(d.delay), cooldown: integer(d.cooldown, 1) };
 }
 const emptyState = () => ({ clock: 0, auto: {}, manual: {} });
 
@@ -139,7 +140,9 @@ export function writeDelta(m, d) {
     const old = readDelta(m);
     if (old && old.anchor === d.anchor && old.round === d.round) {
         const seen = new Set(old.inj.map(x => JSON.stringify(x)));
-        d = { ...old, inj: [...old.inj, ...d.inj.filter(x => !seen.has(JSON.stringify(x)))] };
+        const capSeen = new Set((old.cap ?? []).map(x => JSON.stringify(x)));
+        const cap = old.cap || d.cap ? { cap: [...(old.cap ?? []), ...(d.cap ?? []).filter(x => !capSeen.has(JSON.stringify(x)))] } : {};
+        d = { ...old, ...d, ...cap, delay: old.delay, cooldown: old.cooldown, inj: [...old.inj, ...d.inj.filter(x => !seen.has(JSON.stringify(x)))] };
     }
     writeWsm(m, { d });
 }

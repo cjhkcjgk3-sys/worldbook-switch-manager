@@ -34,7 +34,8 @@
 | `TOOL_CALLS_PERFORMED` | `public/scripts/tool-calling.js`；`public/script.js:Generate` | 工具调用后续请求沿用首个请求的证据 | 1.19.0 实例：流式/非流式均通过 |
 | `streamingProcessor.isStopped/isFinished/abortController.signal.aborted` | `public/script.js:StreamingProcessor` | 停止后的半截回复：GENERATION_STOPPED → ENDED → MESSAGE_RECEIVED（aborted=true） | 1.19.0 实例：停止不写记录 |
 | `world_names` | `public/scripts/world-info.js` | 列出已不存在的范围选择 | 源码已核对 |
-| `world_info_depth` / `world_info_case_sensitive` / `world_info_match_whole_words` / `world_info_logic` | `public/scripts/world-info.js` | 1.3.1：单回合绿灯上限按原生扫描深度、大小写、全词与副关键词逻辑（0–3）排序取前 N 条 | 1.19.0 源码已核对 |
+| `WORLDINFO_SCAN_DONE` | `public/scripts/world-info.js:5149–5186` | 本地修复：最后一轮修改原生接受 Map；最大递归步数结束同样处理；不回滚已发生的递归/预算/分组 | 官方 1.19.0 源码 + 提取扫描/提示词组装 CPU 验证；真实前端未验收 |
+| `world_info_depth` / `world_info_case_sensitive` / `world_info_match_whole_words` / `world_info_max_recursion_steps` | `public/scripts/world-info.js` | 仅用于候选提及排序提示与最大递归终止判断，不模拟原生资格 | 单测及本地源码核对 |
 
 上述内部模块只读导入是本项目明确声明的版本依赖，不是跨版本稳定 API。冻结不依赖 Tavern Helper 写世界书接口，因为那会持久改写条目；也不使用私有 DOM 来推测生成结果。
 

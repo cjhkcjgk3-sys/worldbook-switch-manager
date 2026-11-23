@@ -2,7 +2,7 @@ import { ID, settingsWithDefaults, status, managed, selectGreenCapVictims, entry
 import { DRAFT, derive, nextRound, draftFor, applyDraft, buildStart, readStart, readDelta, writeStart, writeDelta, writeWsm, writeDeltaToSwipes, removeDelta, clearInherited, stripAll, findAnchor, isReply } from './timeline.js';
 
 const EVENTS = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED'];
-const OPTIONAL_EVENTS = ['TOOL_CALLS_PERFORMED', 'MESSAGE_SWIPE_DELETED', 'MESSAGE_SENT'];
+const OPTIONAL_EVENTS = ['WORLDINFO_SCAN_DONE','TOOL_CALLS_PERFORMED', 'MESSAGE_SWIPE_DELETED', 'MESSAGE_SENT'];
 /** Generation types that answer the chat. quiet/impersonate never count. */
 const SIDE = new Set(['quiet', 'impersonate']);
 /** MESSAGE_RECEIVED types that are never the reply of a pending generation. */
@@ -43,6 +43,8 @@ export class Manager {
         this.sessionRevision = 0;
         this.viewCache = null;
         this.lastCapSkipped = 0;
+        this.capStages = new WeakMap();
+        this.capWarning = '';
     }
     get settings() {
         const ctx = this.context();
@@ -59,9 +61,11 @@ export class Manager {
         const missing = preflight(ctx, this.adapter);
         if (missing.length) throw new Error(`酒馆缺少所需能力：${missing.join('、')}`);
         ctx.extensionSettings[ID] = settingsWithDefaults(ctx.extensionSettings[ID]);
+        this.capWarning = ctx.eventTypes.WORLDINFO_SCAN_DONE ? '' : '酒馆缺少 WORLDINFO_SCAN_DONE，绿灯上限已停用；冷却与冻结仍可使用。';
         const handlers = {
             GENERATION_STARTED: (type, options, dryRun) => this.begin(type, dryRun),
             WORLDINFO_ENTRIES_LOADED: payload => this.filter(payload),
+            WORLDINFO_SCAN_DONE: args => this.scanDone(args),
             WORLD_INFO_ACTIVATED: entries => this.activated(entries),
             GENERATE_AFTER_DATA: (data, dryRun) => { if (this.context().mainApi !== 'openai') this.payload(data?.prompt, dryRun); },
             CHAT_COMPLETION_SETTINGS_READY: data => { if (!SIDE.has(data?.type)) this.payload(data?.messages, false); },
@@ -86,7 +90,7 @@ export class Manager {
             if (!event) continue; // optional events (OPTIONAL_EVENTS) on older hosts
             ctx.eventSource.on(event, fn);
             // Observe the final payload after existing extension listeners.
-            if (['GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'WORLDINFO_ENTRIES_LOADED'].includes(name)) ctx.eventSource.makeLast(event, fn);
+            if (['GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'WORLDINFO_ENTRIES_LOADED', 'WORLDINFO_SCAN_DONE'].includes(name)) ctx.eventSource.makeLast(event, fn);
             this.listeners.push([ctx.eventSource, event, fn]);
         }
         this.changeChat();
@@ -196,7 +200,7 @@ export class Manager {
             if (isReply(last)) clearInherited(last);
         }
         this.pending = { id: uuid(), type, chat: this.chatIdentity, phase: 'collecting', locked: false, committed: null, target: null, swipeFrom: 0, anchor: null, round: 0, base: null, filterState: null,
-            activated: new Map(), injected: new Map(), tainted: false, stopped: false, ended: false, nested: 0, toolContinuation: false, cache: null };
+            activated: new Map(), injected: new Map(), capChosen: new Map(), tainted: false, stopped: false, ended: false, nested: 0, toolContinuation: false, cache: null };
         this.touch();
     }
     /**
@@ -237,46 +241,61 @@ export class Manager {
         const tracked = p?.anchor ? p : null;
         const state = tracked ? tracked.filterState : this.view.state;
         const round = tracked ? tracked.round : this.view.round;
-        const allEntries = [];
         for (const entries of Object.values(payload)) {
             if (!Array.isArray(entries)) continue;
-            for (const e of entries) {
-                if (status(state, this.settings, e.world, e.uid, round, Boolean(e.constant)).blocked) e.disable = true;
-                allEntries.push(e);
-            }
-        }
-        const isMainScan = Boolean(tracked && tracked.nested === 0);
-        if (this.settings.capEnabled) {
-            let chat = this.context().chat;
-            if (isMainScan && Array.isArray(chat) && chat.length) {
-                if (tracked.type === 'swipe' && tracked.target) {
-                    const idx = chat.indexOf(tracked.target);
-                    if (idx >= 0) chat = chat.slice(0, idx);
-                } else if (tracked.type === 'regenerate') {
-                    const anchorIdx = chat.indexOf(tracked.anchor);
-                    if (anchorIdx >= 0 && anchorIdx < chat.length - 1) {
-                        let tail = chat.length - 1;
-                        while (tail > anchorIdx && chat[tail]?.is_system) tail--;
-                        if (tail > anchorIdx && !chat[tail]?.is_user) chat = chat.slice(0, tail);
-                    }
-                }
-            }
-            const victims = selectGreenCapVictims(allEntries, chat, this.settings, this.adapter.scanOptions?.() ?? {});
-            for (const v of victims) v.disable = true;
-            if (isMainScan) this.lastCapSkipped = new Set(victims.map(v => entryKey(v.world, v.uid))).size;
-        } else if (isMainScan) {
-            this.lastCapSkipped = 0;
+            for (const e of entries) if (status(state, this.settings, e.world, e.uid, round, Boolean(e.constant)).blocked) e.disable = true;
         }
     }
+    /** Successful reservations on the visible branch, not a global chat counter. */
+    capUsed(p) {
+        const used = new Set();
+        const ctx = this.context(), a = ctx.chat.indexOf(p?.anchor);
+        const snap = a >= 0 ? readStart(p.anchor) : null;
+        if (snap) for (let i = a + 1; i < ctx.chat.length; i++) {
+            const d = readDelta(ctx.chat[i]);
+            if (!d || d.anchor !== snap.id || d.round !== p.round) continue;
+            for (const [w,u] of d.cap ?? []) if (managed(this.settings,w,u,false)) used.add(entryKey(w,u));
+        }
+        for (const [key] of p?.capChosen ?? []) used.add(key);
+        return used;
+    }
+    /** Official ST1.19 hook: mutate accepted Map only after native scan has finished. */
+    scanDone(args) {
+        if (!this.settings.enabled || !this.settings.capEnabled || this.capWarning) return;
+        const accepted = args?.activated?.entries;
+        if (!(accepted instanceof Map)) { this.capWarning = 'WORLDINFO_SCAN_DONE 数据不兼容，绿灯上限已停用。'; return; }
+        const opts = this.adapter.scanOptions?.() ?? {};
+        const maxSteps = Number(opts.maxRecursionSteps) || 0;
+        if (args.state?.next !== 0 && !(maxSteps > 0 && args.state?.loopCount >= maxSteps)) return;
+        const p = this.pending?.nested ? null : this.bind();
+        let chat = this.context().chat;
+        // Only swipe targets remain in chat while being replaced. Regenerate's target
+        // has already been removed by ST: never trim another surviving reply (A04).
+        if (p?.type === 'swipe' && p.target) {
+            const i = chat.indexOf(p.target); if (i >= 0) chat = chat.slice(0,i);
+        }
+        const victims = selectGreenCapVictims([...accepted.values()], chat, this.settings, opts, this.capUsed(p));
+        const dropped = new Set(victims);
+        for (const [key,e] of accepted) if (dropped.has(e)) accepted.delete(key);
+        const stage = { skipped: new Set(victims.map(e => entryKey(e.world,e.uid))).size };
+        // Weak identity bridge: previews don't emit ACTIVATED; quiet is excluded below.
+        // Never persist a scan's provisional choices until a real reply succeeds.
+        for (const e of accepted.values()) this.capStages.set(e, stage);
+    }
     activated(entries) {
+        if (this.pending?.nested > 0) return;
         const p = this.bind();
         if (p) p.locked = true;
         if (!p?.anchor || !Array.isArray(entries)) return;
         const settings = this.settings;
-        if (!settings.enabled || !settings.automatic) return;
+        if (!settings.enabled || (!settings.automatic && !(settings.capEnabled && !this.capWarning))) return;
         const ctx = this.context();
         p.cache ??= this.adapter.prepare?.(ctx);
+        const stage = entries.map(e => this.capStages.get(e)).find(Boolean);
+        if (stage) this.lastCapSkipped = stage.skipped;
         for (const e of entries) {
+            const capEligible = settings.capEnabled && !this.capWarning && this.capStages.has(e) && !e.constant && !e.vectorized && managed(settings,e.world,e.uid,false);
+            if (capEligible) p.capChosen.set(entryKey(e.world,e.uid), [String(e.world),String(e.uid)]);
             if (e.disable || !managed(settings, e.world, e.uid, Boolean(e.constant))) continue;
             const key = entryKey(e.world, e.uid);
             if (p.activated.has(key)) continue;
@@ -289,6 +308,7 @@ export class Manager {
         if (!p) return;
         p.locked = true;
         p.phase = 'sent';
+        if (this.settings.capEnabled && !p.capChosen.size) this.lastCapSkipped = null;
         if (!p.anchor) return;
         const ctx = this.context();
         const text = promptText(prompt);
@@ -350,9 +370,11 @@ export class Manager {
         }
         if (draft && ctx.chatMetadata) delete ctx.chatMetadata[DRAFT];
         const inj = p.tainted || !settings.automatic ? [] : [...p.injected.values()];
+        // Reservations are independent of automatic cooldown, and only successful replies commit them.
+        const cap = p.capChosen.size ? { cap: [...p.capChosen.values()] } : {};
         const prev = readDelta(reply);
         const from = reply === p.target ? p.swipeFrom : 0;
-        writeDelta(reply, { anchor: s.id, round: p.round, inj, delay: integer(settings.delay), cooldown: integer(settings.cooldown, 1) });
+        writeDelta(reply, { ...cap, anchor: s.id, round: p.round, inj, delay: integer(settings.delay), cooldown: integer(settings.cooldown, 1) });
         // Multi-choice requests (n > 1) create several swipes at once; they share this outcome.
         if (Number.isFinite(from)) writeDeltaToSwipes(reply, readDelta(reply), from);
         p.committed = { reply, prev, from };

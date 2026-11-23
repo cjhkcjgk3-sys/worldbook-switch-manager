@@ -190,7 +190,7 @@ export function mountUI(manager, target, { open = false } = {}) {
             ? ` · 绿灯上限 ${manager.settings.capLimit} 条${manager.lastCapSkipped > 0 ? `（上次跳过 ${manager.lastCapSkipped} 条）` : ''}`
             : '';
         summary.textContent = `${manager.settings.enabled ? '管理已启用' : '管理已暂停'} · ${hasSelection(manager.settings) ? '精细管理：仅指定世界书或条目' : '全部管理：当前使用的所有条目'} · 下一回合：第 ${manager.view.round} 回合${capText}${manager.view.draft ? ' · 有待生效的手动冻结' : ''}`;
-        notice.textContent = manager.error || manager.evidenceWarning || manager.notice || '';
+        notice.textContent = manager.error || (manager.settings.capEnabled && manager.capWarning) || manager.evidenceWarning || manager.notice || '';
         notice.hidden = !notice.textContent;
         hint.textContent = purpose.value === 'scope' ? '清空精细选择 = 恢复默认管理全部。整本选择会包含以后新增的条目。' : '此处选择只用于临时操作，不会改变自动管理范围。手动冻结从下一次新回合起计时。';
         manualActions.hidden = purpose.value !== 'manual';

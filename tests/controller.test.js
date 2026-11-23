@@ -404,122 +404,61 @@ test('green cap preserves consistency across timeline rollback and branching', a
     assert.equal(st.status(1).cooldown, 2);
 });
 
-test('green cap excludes old swipe/regenerate reply, preserves continue reply and aiTurns anchor', async () => {
-    const entries = [
-        { world: 'book', uid: 1, key: ['oldA'], content: 'LORE_1', position: 0, disable: false },
-        { world: 'book', uid: 2, key: ['oldB'], content: 'LORE_2', position: 0, disable: false },
-        { world: 'book', uid: 3, key: ['userKey'], content: 'LORE_3', position: 0, disable: false },
-    ];
-    // 1) swipe: target still contains oldA/oldB before host clears it; swipe must ignore target's old text
-    const s1 = new FakeST({ capEnabled: true, capLimit: 1, cooldown: 1 });
-    s1.entries = structuredClone(entries);
-    await s1.user('start');
-    await s1.generate('normal', { text: 'clean', scanText: '' });
-    await s1.user('userKey');
-    await s1.generate('normal', { text: 'oldA oldB', scanText: '' });
-    // Now swipe round 2 where target reply mentions oldA oldB
-    const target = s1.chat[s1.chat.length - 1];
-    target.swipe_info[0].extra = structuredClone(target.extra);
-    target.swipes.push('oldA oldB');
-    target.swipe_info.push({ extra: structuredClone(target.extra) });
-    target.swipe_id = 1;
-    target.mes = 'oldA oldB';
-    await s1.emit('GENERATION_STARTED', 'swipe', {}, false);
-    const swipePayload = { globalLore: structuredClone(s1.entries) };
-    await s1.emit('WORLDINFO_ENTRIES_LOADED', swipePayload);
-    assert.equal(swipePayload.globalLore.find(e => e.uid === 3).disable, false, 'userKey is not crowded out by replaced swipe');
-    assert.equal(s1.manager.lastCapSkipped, 0);
-
-    // 2a) regenerate with un-deleted trailing reply (aiTurns off) strips the trailing reply
-    const s2a = new FakeST({ capEnabled: true, capLimit: 1, aiTurns: false, cooldown: 1 });
-    s2a.entries = structuredClone(entries);
-    await round(s2a, 'userKey', { text: 'oldA oldB', scanText: '' });
-    await s2a.emit('GENERATION_STARTED', 'regenerate', {}, false);
-    const regenUnpopped = { globalLore: structuredClone(s2a.entries) };
-    await s2a.emit('WORLDINFO_ENTRIES_LOADED', regenUnpopped);
-    assert.equal(regenUnpopped.globalLore.find(e => e.uid === 3).disable, false);
-    assert.equal(s2a.manager.lastCapSkipped, 0);
-
-    // 2b) regenerate with aiTurns on (1.19 pops trailing reply before scan) preserves previous AI anchor
-    const s2b = new FakeST({ capEnabled: true, capLimit: 1, aiTurns: true, cooldown: 1 });
-    s2b.entries = structuredClone(entries);
-    await s2b.user('start');
-    await s2b.generate('normal', { text: 'oldA', scanText: '' });
-    await s2b.generate('normal', { text: 'oldB', scanText: '' });
-    await s2b.emit('GENERATION_STARTED', 'regenerate', {}, false);
-    s2b.chat.pop();
-    await s2b.emit('MESSAGE_DELETED', s2b.chat.length);
-    const regenPayload = { globalLore: structuredClone(s2b.entries) };
-    await s2b.emit('WORLDINFO_ENTRIES_LOADED', regenPayload);
-    assert.equal(regenPayload.globalLore.find(e => e.uid === 1).disable, false);
-    assert.equal(s2b.manager.lastCapSkipped, 0);
-
-    // 3) continue preserves partial reply text
-    const s3 = new FakeST({ capEnabled: true, capLimit: 1, cooldown: 1 });
-    s3.entries = structuredClone(entries);
-    await round(s3, 'userKey', { text: 'oldA oldB', scanText: '' });
-    await s3.emit('GENERATION_STARTED', 'continue', {}, false);
-    const contPayload = { globalLore: structuredClone(s3.entries) };
-    await s3.emit('WORLDINFO_ENTRIES_LOADED', contPayload);
-    // userKey (Tier 0) kept, oldA & oldB (Tier 2 in partial reply) skipped -> 2 victims
-    assert.equal(contPayload.globalLore.find(e => e.uid === 3).disable, false);
-    assert.equal(contPayload.globalLore.find(e => e.uid === 1).disable, true);
-    assert.equal(contPayload.globalLore.find(e => e.uid === 2).disable, true);
-    assert.equal(s3.manager.lastCapSkipped, 2);
+// Cap v2 consumes native accepted Map, not WORLDINFO_ENTRIES_LOADED guesses.
+async function nativeCap(st, entries, activate = true) {
+    const map = new Map(entries.map((e,i) => [String(i),e]));
+    await st.emit('WORLDINFO_SCAN_DONE', {state:{next:0,loopCount:1},activated:{entries:map}});
+    const active = [...map.values()];
+    if (activate) await st.emit('WORLD_INFO_ACTIVATED',active);
+    return active;
+}
+test('green cap ranks actual candidates without cutting surviving regenerate or continue context', async () => {
+    for (const type of ['swipe','regenerate','continue']) {
+        const st = new FakeST({capEnabled:true,capLimit:1});
+        const es = [
+            {world:'book',uid:1,key:['oldA'],content:'A',position:0},
+            {world:'book',uid:2,key:['oldB'],content:'B',position:0},
+            {world:'book',uid:3,key:['userKey'],content:'U',position:0},
+        ];
+        st.entries=es;
+        await round(st,'userKey',{text:'oldA oldB',scanText:''});
+        await st.emit('GENERATION_STARTED',type,{},false);
+        if(type==='regenerate') {st.chat.pop();await st.emit('MESSAGE_DELETED',st.chat.length);}
+        await st.emit('WORLDINFO_ENTRIES_LOADED',{globalLore:structuredClone(es)});
+        assert.deepEqual((await nativeCap(st,structuredClone(es))).map(e=>e.uid),[3]);
+        assert.equal(st.manager.lastCapSkipped,2);
+    }
 });
-
-test('post-generation dryRun and nested quiet scans preserve lastCapSkipped; toggling off resets it', async () => {
-    const st = new FakeST({ capEnabled: true, capLimit: 1, cooldown: 1 });
-    st.entries = [
-        { world: 'book', uid: 1, key: ['alpha'], content: 'L1', position: 0 },
-        { world: 'book', uid: 2, key: ['beta'], content: 'L2', position: 0 },
-        { world: 'book', uid: 3, key: ['gamma'], content: 'L3', position: 0 },
-    ];
-    await round(st, 'alpha beta gamma', { scanText: 'alpha beta gamma', quietInside: true });
-    assert.equal(st.manager.lastCapSkipped, 2);
-
-    // Post-generation dryRun scan (like 1.19 token recount) must not overwrite lastCapSkipped
-    await st.emit('GENERATION_STARTED', 'normal', {}, true);
-    await st.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: structuredClone(st.entries) });
-    assert.equal(st.manager.lastCapSkipped, 2);
-
-    // Nested quiet scan while collecting must not overwrite lastCapSkipped
-    await st.user('alpha beta gamma');
-    await st.emit('GENERATION_STARTED', 'normal', {}, false);
-    await st.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: structuredClone(st.entries) });
-    assert.equal(st.manager.lastCapSkipped, 1);
-    await st.emit('GENERATION_STARTED', 'quiet', {}, false);
-    await st.emit('WORLDINFO_ENTRIES_LOADED', { globalLore: [] });
-    assert.equal(st.manager.lastCapSkipped, 1);
+test('dryRun/quiet native scans cannot overwrite successful summary or reserve main quota', async () => {
+    const st=new FakeST({capEnabled:true,capLimit:1,cooldown:1});
+    st.entries=[1,2,3].map((uid,i)=>({world:'book',uid,key:[['alpha','beta','gamma'][i]],content:`L${uid}`,position:0}));
+    await round(st,'alpha beta gamma',{quietInside:true});
+    assert.equal(st.manager.lastCapSkipped,2);
+    await st.emit('GENERATION_STARTED','normal',{},true);
+    await nativeCap(st,structuredClone(st.entries),false);
+    assert.equal(st.manager.lastCapSkipped,2);
+    await st.user('alpha beta gamma');await st.emit('GENERATION_STARTED','normal',{},false);
+    const payload={globalLore:structuredClone(st.entries)};
+    await st.emit('WORLDINFO_ENTRIES_LOADED',payload);
+    await st.emit('GENERATION_STARTED','quiet',{},false);
+    await nativeCap(st,structuredClone(st.entries));
+    assert.equal(st.manager.lastCapSkipped,2);
     await st.emit('GENERATION_ENDED');
-    await st.emit('GENERATION_ENDED');
-
-    // Toggling capEnabled off clears lastCapSkipped
-    await round(st, 'alpha beta gamma', { scanText: 'alpha beta gamma' });
-    assert.equal(st.manager.lastCapSkipped, 1); // uid 1 still in round 2 cooldown; uid 2 & 3 compete -> 1 skipped
-    st.manager.updateSettings({ capEnabled: false });
-    assert.equal(st.manager.lastCapSkipped, 0);
+    const selected=await nativeCap(st,payload.globalLore.filter(e=>!e.disable));
+    assert.deepEqual(selected.map(e=>e.uid),[2]);
+    assert.equal(st.manager.lastCapSkipped,1);
+    st.manager.updateSettings({capEnabled:false});assert.equal(st.manager.lastCapSkipped,0);
 });
-
-test('green cap counts duplicate (world, uid) across lore buckets once and disables all copies', async () => {
-    const st = new FakeST({ capEnabled: true, capLimit: 2 });
-    const e1 = { world: 'book', uid: 1, key: ['k1'], content: 'L1', position: 0, disable: false };
-    const e2 = { world: 'book', uid: 2, key: ['k2'], content: 'L2', position: 0, disable: false };
-    const e3 = { world: 'book', uid: 3, key: ['k3'], content: 'L3', position: 0, disable: false };
-    await st.user('k1 k2 k3');
-    await st.emit('GENERATION_STARTED', 'normal', {}, false);
-    const payload = {
-        globalLore: [structuredClone(e1), structuredClone(e2), structuredClone(e3)],
-        characterLore: [structuredClone(e1), structuredClone(e2), structuredClone(e3)],
-    };
-    await st.emit('WORLDINFO_ENTRIES_LOADED', payload);
-    assert.equal(payload.globalLore[0].disable, false);
-    assert.equal(payload.characterLore[0].disable, false);
-    assert.equal(payload.globalLore[1].disable, false);
-    assert.equal(payload.characterLore[1].disable, false);
-    assert.equal(payload.globalLore[2].disable, true);
-    assert.equal(payload.characterLore[2].disable, true);
-    assert.equal(st.manager.lastCapSkipped, 1);
+test('native green cap deduplicates copies, removes all victims from accepted Map only', async () => {
+    const st=new FakeST({capEnabled:true,capLimit:2});await st.user('k1 k2 k3');
+    await st.emit('GENERATION_STARTED','normal',{},false);
+    const es=[1,2,3].map(uid=>({world:'book',uid,key:[`k${uid}`],content:`L${uid}`,position:0,disable:false}));
+    const copies=[...structuredClone(es),...structuredClone(es)];
+    await st.emit('WORLDINFO_ENTRIES_LOADED',{globalLore:copies});
+    const accepted=await nativeCap(st,copies);
+    assert.deepEqual(accepted.map(e=>e.uid),[1,2,1,2]);
+    assert.ok(copies.every(e=>e.disable===false),'cap does not mutate source scan entries');
+    assert.equal(st.manager.lastCapSkipped,1);
 });
 
 test('table/status plugin in-place MESSAGE_UPDATED preserves timeline cooldowns and manual freezes', async () => {

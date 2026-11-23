@@ -29,7 +29,7 @@ class Events {
     removeListener(n,f){this.events.set(n,(this.events.get(n)??[]).filter(x=>x!==f));}
     makeLast(n,f){this.removeListener(n,f);this.on(n,f);}
 }
-const names=['WORLDINFO_ENTRIES_LOADED','WORLD_INFO_ACTIVATED','GENERATE_AFTER_DATA','CHAT_COMPLETION_SETTINGS_READY','GENERATION_STARTED','GENERATION_ENDED','GENERATION_STOPPED','MESSAGE_RECEIVED','CHAT_CHANGED','MESSAGE_EDITED','MESSAGE_UPDATED','MESSAGE_DELETED','MESSAGE_SWIPED','WORLDINFO_SETTINGS_UPDATED','WORLDINFO_UPDATED','CHARACTER_EDITED','PERSONA_CHANGED'];
+const names=['WORLDINFO_SCAN_DONE','WORLDINFO_ENTRIES_LOADED','WORLD_INFO_ACTIVATED','GENERATE_AFTER_DATA','CHAT_COMPLETION_SETTINGS_READY','GENERATION_STARTED','GENERATION_ENDED','GENERATION_STOPPED','MESSAGE_RECEIVED','CHAT_CHANGED','MESSAGE_EDITED','MESSAGE_UPDATED','MESSAGE_DELETED','MESSAGE_SWIPED','WORLDINFO_SETTINGS_UPDATED','WORLDINFO_UPDATED','CHARACTER_EDITED','PERSONA_CHANGED'];
 const events=new Events();
 const metadata={world_info:'large'};
 const ctx={chat:[],chatMetadata:metadata,extensionSettings:{},eventTypes:Object.fromEntries(names.map(n=>[n,n])),eventSource:events,
@@ -77,12 +77,25 @@ for(let i=0;i<50;i++){
     ctx.chat.push({is_user:true,mes:'kw_0 kw_1 kw_2 kw_3 kw_4 kw_5 kw_6 kw_7',extra:{}});
     manager.touch();
     const payload={globalLore:capEntries.map(e=>({...e}))};
-    const t=performance.now();manager.filter(payload);capTimes.push(performance.now()-t);
+    manager.filter(payload);
+    const beforeCap=payload.globalLore.filter(e=>!e.disable).length;
+    const accepted=new Map(payload.globalLore.filter(e=>!e.disable && e.key.some(k=>ctx.chat.at(-1).mes.includes(k))).map(e=>[entryKey(e.world,e.uid),e]));
+    const t=performance.now();manager.scanDone({state:{next:0,loopCount:1},activated:{entries:accepted}});capTimes.push(performance.now()-t);
     ctx.chat.pop();
-    assert.equal(payload.globalLore.filter(e=>!e.disable).length,8005); // 2000 matching reduced to 5 + 8000 non-matching
+    assert.equal(accepted.size,5); // Only native accepted entries compete; originals stay untouched.
+    assert.equal(payload.globalLore.filter(e=>!e.disable).length,beforeCap);
 }
 capTimes.sort((a,b)=>a-b);
 record('40000-message chat, 10000 keyed entries, green cap (limit 5), 50 scans',capStart,{messages:40001,entries:10000,capLimit:5,scans:50,p50Ms:+capTimes[25].toFixed(2),p95Ms:+capTimes[47].toFixed(2)});
+// Distinct scan depths used to retain O(sum(depth)) copies of chat text (A05).
+const varied=Array.from({length:600},(_,uid)=>({world:'depths',uid,key:['absent'],content:'x',scanDepth:uid+1}));
+const savedChat=ctx.chat;ctx.chat=Array.from({length:600},(_,i)=>({is_user:!!(i%2),mes:'x'.repeat(1000)}));
+const memStart=process.memoryUsage().heapUsed, depthStart=performance.now();
+const variedMap=new Map(varied.map(e=>[String(e.uid),e]));
+manager.scanDone({state:{next:0,loopCount:1},activated:{entries:variedMap}});
+assert.equal(variedMap.size,5);
+record('600 distinct depths, 600 x 1KB messages, bounded native-candidate ranking',depthStart,{heapGrowthMB:+((process.memoryUsage().heapUsed-memStart)/1024**2).toFixed(2),retained:variedMap.size});
+ctx.chat=savedChat;
 manager.updateSettings({capEnabled:false});
 
 start=performance.now();let loads=0;

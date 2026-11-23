@@ -6,7 +6,7 @@
 import { Manager } from '../controller.js';
 import { ID } from '../core.js';
 
-export const NAMES = ['WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED', 'TOOL_CALLS_PERFORMED', 'MESSAGE_SWIPE_DELETED', 'MESSAGE_SENT'];
+export const NAMES = ['WORLDINFO_SCAN_DONE','WORLDINFO_ENTRIES_LOADED', 'WORLD_INFO_ACTIVATED', 'GENERATE_AFTER_DATA', 'CHAT_COMPLETION_SETTINGS_READY', 'GENERATION_STARTED', 'GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED', 'CHAT_CHANGED', 'MESSAGE_EDITED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'WORLDINFO_SETTINGS_UPDATED', 'WORLDINFO_UPDATED', 'CHARACTER_EDITED', 'PERSONA_CHANGED', 'TOOL_CALLS_PERFORMED', 'MESSAGE_SWIPE_DELETED', 'MESSAGE_SENT'];
 export class Events {
     events = new Map();
     on(name, fn) { this.events.set(name, [...(this.events.get(name) ?? []), fn]); }
@@ -98,7 +98,10 @@ export class FakeST {
         const payload = { globalLore: clone(this.entries), characterLore: [], chatLore: [], personaLore: [] };
         await this.emit('WORLDINFO_ENTRIES_LOADED', payload);
         const lastUser = [...this.chat].reverse().find(m => m.is_user);
-        const active = this.scan(payload, tool && continuation ? '' : (opts.scanText ?? lastUser?.mes ?? ''));
+        const eligible = opts.nativeEligible ?? this.scan(payload, tool && continuation ? '' : (opts.scanText ?? lastUser?.mes ?? ''));
+        const accepted = new Map(eligible.map(e => [`${e.world}.${e.uid}`, e]));
+        await this.emit('WORLDINFO_SCAN_DONE', { state: { next: 0, loopCount: 1 }, activated: { entries: accepted } });
+        const active = [...accepted.values()];
         await this.emit('WORLD_INFO_ACTIVATED', active);
         const prompt = active.map(e => e.content).join('\n') + '\n' + this.chat.map(m => m.mes).join('\n');
         await this.emit('GENERATE_AFTER_DATA', { prompt }, false);
@@ -151,7 +154,9 @@ export class FakeST {
         await this.emit('GENERATION_STARTED', 'quiet', {}, false);
         const payload = { globalLore: clone(this.entries) };
         await this.emit('WORLDINFO_ENTRIES_LOADED', payload);
-        const active = this.scan(payload, 'dragon castle');
+        const accepted = new Map(this.scan(payload, 'dragon castle').map(e => [`${e.world}.${e.uid}`, e]));
+        await this.emit('WORLDINFO_SCAN_DONE', { state: { next: 0, loopCount: 1 }, activated: { entries: accepted } });
+        const active = [...accepted.values()];
         await this.emit('WORLD_INFO_ACTIVATED', active);
         const prompt = active.map(e => e.content).join('\n');
         await this.emit('GENERATE_AFTER_DATA', { prompt }, false);

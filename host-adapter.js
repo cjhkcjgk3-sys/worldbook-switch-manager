@@ -143,6 +143,7 @@ export function createAdapter(wi, regex, openai) {
         scanOptions() {
             return {
                 scanDepth: Number(wi?.world_info_depth) || 2,
+                maxRecursionSteps: Number(wi?.world_info_max_recursion_steps) || 0,
                 caseSensitive: Boolean(wi?.world_info_case_sensitive),
                 matchWholeWords: Boolean(wi?.world_info_match_whole_words),
             };

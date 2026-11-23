@@ -121,97 +121,21 @@ test('settingsWithDefaults migrates protectConstant to single includeConstant an
     assert.equal('protectConstant' in explicitWins, false);
 });
 
-test('selectGreenCapVictims enforces tier/age/pos/seq priority, exclusions, regex, selectiveLogic, whole-word, scanDepth 0, dedup, and long chat tail', () => {
-    const mk = (uid, key, extra = {}) => ({ world: 'book', uid, key, constant: false, disable: false, scanDepth: 4, ...extra });
-    const chat = [
-        { is_user: true, mes: '早前提过迪卢克' },
-        { is_user: false, mes: '刚才提到了凯亚、丽莎和芭芭拉' },
-        { is_user: true, mes: '我们去找安柏，再找琴团长' },
+test('native accepted green cap: mention priorities, fallback eligibility, dedup and successful quota', () => {
+    const cfg=settingsWithDefaults({capEnabled:true,capLimit:2});
+    const chat=[{is_user:true,mes:'older'},{is_user:false,mes:'model'},{is_user:true,mes:'latest'}];
+    const es=[
+        {world:'b',uid:1,key:['model']}, {world:'b',uid:2,key:['older']},
+        {world:'b',uid:3,key:['latest']}, {world:'b',uid:4,key:['not in chat'],scanDepth:0},
+        {world:'b',uid:5,key:[],constant:true}, {world:'b',uid:6,key:[],vectorized:true},
     ];
-    const list = [
-        mk(1, ['凯亚']),
-        mk(2, ['丽莎']),
-        mk(3, ['芭芭拉']),
-        mk(4, ['琴团长']),
-        mk(5, ['安柏']),
-        mk(6, ['迪卢克']),
-        mk(98, ['零深度'], { scanDepth: 0 }),
-        mk(99, ['规则'], { constant: true }),
-        mk(100, ['向量'], { vectorized: true }),
-        mk(101, ['安柏'], { disable: true }),
-    ];
-    assert.deepEqual(selectGreenCapVictims(list, chat, settingsWithDefaults({ capEnabled: false, capLimit: 1 })), []);
-    assert.deepEqual(selectGreenCapVictims(list, chat, settingsWithDefaults({ enabled: false, capEnabled: true, capLimit: 1 })), []);
-
-    // capLimit = 3: Tier 0 = 安柏 (pos 4), 琴团长 (pos 9); Tier 1 = 迪卢克; Tier 2 = 凯亚, 丽莎, 芭芭拉 dropped!
-    const victims = selectGreenCapVictims(list, chat, settingsWithDefaults({ capEnabled: true, capLimit: 3 }));
-    assert.deepEqual(victims.map(v => v.uid), [1, 2, 3]);
-
-    // Unmanaged entries do not consume green cap slots
-    const scoped = settingsWithDefaults({ capEnabled: true, capLimit: 2, selection: { book: ['1', '2', '3', '4', '5'] } });
-    assert.deepEqual(selectGreenCapVictims(list, chat, scoped).map(v => v.uid), [1, 2, 3]);
-
-    // msgAge tie-breaker inside Tier 1 (earlier user message age 1 beats age 2) and seq tie-breaker at same pos
-    const multiUserChat = [
-        { is_user: true, mes: 'oldUser' },
-        { is_user: true, mes: 'midUser' },
-        { is_user: true, mes: 'latestUser' },
-    ];
-    const tieEntries = [
-        mk(21, ['oldUser'], { scanDepth: 5 }),
-        mk(22, ['midUser'], { scanDepth: 5 }),
-        mk(23, ['latestUser'], { scanDepth: 5 }),
-        mk(24, ['latestUser'], { scanDepth: 5 }),
-    ];
-    assert.deepEqual(
-        selectGreenCapVictims(tieEntries, multiUserChat, settingsWithDefaults({ capEnabled: true, capLimit: 2 })).map(v => v.uid),
-        [22, 21],
-    );
-
-    // Regex (including invalid regex fallback), selectiveLogic (0..3), caseSensitive, matchWholeWords
-    const edgeChat = [{ is_user: true, mes: 'cat and dog with Amber, NOT bob; alpha' }];
-    const edgeEntries = [
-        mk(10, ['[unclosed', '/\\bAmber\\b/']),
-        mk(11, ['/cat/'], { selective: true, keysecondary: ['dog', 'bird'], selectiveLogic: 0 }), // AND_ANY -> pass
-        mk(12, ['/cat/'], { selective: true, keysecondary: ['dog', 'bird'], selectiveLogic: 3 }), // AND_ALL -> fail
-        mk(13, ['/cat/'], { selective: true, keysecondary: ['bob'], selectiveLogic: 2 }), // NOT_ANY -> fail
-        mk(14, ['/cat/'], { selective: true, keysecondary: ['dog', 'bird'], selectiveLogic: 1 }), // NOT_ALL -> pass
-        mk(15, ['alpha'], { caseSensitive: true }),
-        mk(16, ['ALPHA'], { caseSensitive: true }), // fail
-        mk(17, ['cat'], { matchWholeWords: true }),
-        mk(18, ['og'], { matchWholeWords: true }), // fail whole-word inside dog
-    ];
-    const edgeVictims = selectGreenCapVictims(edgeEntries, edgeChat, settingsWithDefaults({ capEnabled: true, capLimit: 2 }));
-    assert.deepEqual(edgeVictims.map(v => v.uid), [17, 10, 15]);
-
-    // Deduplicate duplicate (world, uid) copies across buckets
-    const fourDup = [1, 2, 3, 4].flatMap((uid, i) => {
-        const k = ['安柏', '凯亚', '丽莎', '可莉'][i];
-        return [mk(uid, [k]), mk(uid, [k])];
-    });
-    const dupChat = [{ is_user: true, mes: '安柏 凯亚 丽莎 可莉 温迪' }];
-    assert.deepEqual(selectGreenCapVictims(fourDup, dupChat, settingsWithDefaults({ capEnabled: true, capLimit: 4 })), []);
-    const fiveDup = [...fourDup, mk(5, ['温迪']), mk(5, ['温迪'])];
-    assert.deepEqual(selectGreenCapVictims(fiveDup, dupChat, settingsWithDefaults({ capEnabled: true, capLimit: 4 })).map(v => v.uid), [5, 5]);
-
-    // scanDepth === 0 is ignored even if keys appear in chat
-    const zeroDepthEntries = [mk(31, ['alpha'], { scanDepth: 0 }), mk(32, ['alpha'], { scanDepth: 2 }), mk(33, ['alpha'], { scanDepth: 2 })];
-    assert.deepEqual(selectGreenCapVictims(zeroDepthEntries, [{ is_user: true, mes: 'alpha' }], settingsWithDefaults({ capEnabled: true, capLimit: 1 })).map(v => v.uid), [33]);
-
-    // Long chat backwards tail scan respects per-entry scanDepth accurately
-    const longChat = Array.from({ length: 10000 }, (_, i) => ({ is_user: i % 2 === 0, mes: `noise-${i}` }));
-    longChat.push(
-        { is_user: true, mes: 'farUser' },
-        { is_user: false, mes: 'sysHidden', is_system: true },
-        { is_user: false, mes: 'nearModel' },
-        { is_user: true, mes: 'topUser' },
-    );
-    const tailEntries = [
-        mk(41, ['farUser'], { scanDepth: 2 }), // outside depth 2
-        mk(42, ['farUser'], { scanDepth: 3 }), // inside depth 3 (system message skipped)
-        mk(43, ['nearModel'], { scanDepth: 2 }),
-        mk(44, ['topUser'], { scanDepth: 2 }),
-    ];
-    // Matched: 44 (tier 0), 42 (tier 1), 43 (tier 2); 41 excluded by scanDepth 2
-    assert.deepEqual(selectGreenCapVictims(tailEntries, longChat, settingsWithDefaults({ capEnabled: true, capLimit: 1 })).map(v => v.uid), [42, 43]);
+    assert.deepEqual(selectGreenCapVictims(es,chat,cfg,{scanDepth:10}).map(e=>e.uid),[1,4]);
+    assert.deepEqual(selectGreenCapVictims(es,[],cfg).map(e=>e.uid),[3,4]);
+    assert.deepEqual(selectGreenCapVictims(es,chat,cfg,{scanDepth:10},new Set([entryKey('b',4)])).map(e=>e.uid),[2,1]);
+    const copies=[...es.slice(0,4),structuredClone(es[0])];
+    assert.deepEqual(selectGreenCapVictims(copies,chat,cfg,{scanDepth:10}).map(e=>e.uid),[1,1,4]);
+    const off=settingsWithDefaults({capEnabled:false});
+    assert.deepEqual(selectGreenCapVictims(es,chat,off),[]);
+    const scoped=settingsWithDefaults({capEnabled:true,capLimit:1,selection:{b:['1','3']}});
+    assert.deepEqual(selectGreenCapVictims(es,chat,scoped).map(e=>e.uid),[1]);
 });
