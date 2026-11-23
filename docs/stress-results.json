@@ -1,10 +1,10 @@
 {
-  "environment": "Node v24.22.1; isolated deterministic event tests, no paid model calls",
+  "environment": "Node v22.12.0; isolated deterministic event tests, no paid model calls",
   "results": [
     {
       "name": "100000 rounds plus 100000 regenerations",
       "result": "PASS",
-      "elapsedMs": 162,
+      "elapsedMs": 180,
       "rounds": 100000,
       "regenerations": 100000,
       "retainedTurnRecords": 1,
@@ -13,7 +13,7 @@
     {
       "name": "5000 enable/disable cycles",
       "result": "PASS",
-      "elapsedMs": 85,
+      "elapsedMs": 55,
       "cycles": 5000,
       "remainingListeners": 0,
       "metadataUnchanged": true
@@ -21,39 +21,39 @@
     {
       "name": "40000-message chat, 10000 entries, 50 scans",
       "result": "PASS",
-      "elapsedMs": 619,
+      "elapsedMs": 789,
       "messages": 40001,
       "entries": 10000,
       "scans": 50,
-      "p50Ms": 1.85,
-      "p95Ms": 3.82
+      "p50Ms": 1.99,
+      "p95Ms": 10.47
     },
     {
       "name": "10000 entries across 20 books, 200 scans",
       "result": "PASS",
-      "elapsedMs": 619,
+      "elapsedMs": 789,
       "entries": 10000,
       "scans": 200,
-      "p50Ms": 1.88,
-      "p95Ms": 3.9,
+      "p50Ms": 2.23,
+      "p95Ms": 6.29,
       "originalEntriesUnchanged": true
     },
     {
       "name": "40000-message chat, 10000 keyed entries, green cap (limit 5), 50 scans",
       "result": "PASS",
-      "elapsedMs": 379,
+      "elapsedMs": 421,
       "messages": 40001,
       "entries": 10000,
       "capLimit": 5,
       "scans": 50,
-      "p50Ms": 2.51,
-      "p95Ms": 5.34
+      "p50Ms": 2.86,
+      "p95Ms": 6.05
     },
     {
       "name": "600 distinct depths, 600 x 1KB messages, bounded native-candidate ranking",
       "result": "PASS",
-      "elapsedMs": 54,
-      "heapGrowthMB": 5.84,
+      "elapsedMs": 45,
+      "heapGrowthMB": 5.32,
       "retained": 5
     },
     {

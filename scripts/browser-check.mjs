@@ -46,6 +46,7 @@ try {
         const capToggle = page.getByRole('checkbox', { name: '启用单回合绿灯触发上限（用户提及优先）', exact: true });
         await capToggle.check();
         assert.match(await page.locator('.wsm-scope').innerText(), /绿灯上限 3 条/);
+        assert.equal(await page.locator('.wsm-notice[role="status"]').isVisible(), false);
         await capToggle.uncheck();
         await capInput.fill('5');
         await capInput.blur();
@@ -80,7 +81,17 @@ try {
         assert.deepEqual(errors, []);
         await mkdir(resolve(root, 'docs'), { recursive: true });
         if (viewport.width === 390) await page.screenshot({ path: resolve(root, 'docs/mobile-preview.png'), fullPage: true });
-        results.push({ viewport, result: 'PASS', checks: ['magic wand menu item: click, Enter/Space and destroy', 'version 1.3.1 & green-cap controls', 'UI scope and independent manual selection', 'three-turn cooldown with regeneration', 'unselected blue entry', 'manual/auto co-existence', 'clear -> all', 'no horizontal overflow', 'no browser exceptions'] });
+        await page.evaluate(async () => { window.harness.ctx.chat = []; await window.harness.events.emit('CHAT_CHANGED'); });
+        await capInput.fill('1');
+        await capInput.blur();
+        await capToggle.check();
+        assert.equal(await page.locator('.wsm-notice[role="status"]').isVisible(), false);
+        const capped = await page.evaluate(() => window.harness.round());
+        assert.deepEqual(capped, ['雷电将军', '提瓦特世界规则']);
+        assert.match(await page.locator('.wsm-scope').innerText(), /绿灯上限 1 条（上次跳过 1 条）/);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        assert.deepEqual(errors, []);
+        results.push({ viewport, result: 'PASS', checks: ['magic wand menu item: click, Enter/Space and destroy', 'version 1.3.1 & green-cap controls', 'UI scope and independent manual selection', 'three-turn cooldown with regeneration', 'unselected blue entry', 'manual/auto co-existence', 'clear -> all', 'live green-cap via WORLDINFO_SCAN_DONE', 'no horizontal overflow', 'no browser exceptions'] });
         await page.close();
     }
     const page = await browser.newPage({viewport:{width:390,height:844}});

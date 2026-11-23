@@ -32,3 +32,23 @@ test('A05: 600 different native candidate depths fit a 128MB independent Node he
     const r=spawnSync(process.execPath,['--max-old-space-size=128','--input-type=module','-e',js],{encoding:'utf8',timeout:10000});
     assert.equal(r.status,0,r.stderr);assert.equal(r.error,undefined);
 });
+
+test('automatic off + capEnabled on does not render or emit cooldown evidenceWarning while committing quota',async()=>{
+    const s=make({automatic:false,capEnabled:true,capLimit:1});
+    let renders=0;
+    s.manager.adapter.render=()=>{renders++;return '';};
+    await round(s);
+    assert.equal(renders,0);
+    assert.equal(s.manager.evidenceWarning,'');
+    assert.deepEqual(cap(s),[['book','1']]);
+});
+
+test('continue with full quota and active constant entry preserves lastCapSkipped',async()=>{
+    const blue={world:'book',uid:99,key:[],constant:true,content:'BLUE_RULE',position:0};
+    const s=make({capEnabled:true,capLimit:1,automatic:false});
+    s.entries=[...entries(),blue];
+    await round(s,{nativeEligible:[entries()[0],blue]});
+    const r=await s.generate('continue',{nativeEligible:[entries()[1],entries()[2],blue]});
+    assert.deepEqual(ids(r),[99]);
+    assert.equal(s.manager.lastCapSkipped,2);
+});

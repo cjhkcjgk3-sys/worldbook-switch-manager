@@ -191,6 +191,7 @@ export class Manager {
             p.toolContinuation = false;
             p.phase = 'collecting';
             p.ended = false;
+            p.capStageSeen = false;
             return;
         }
         const ctx = this.context();
@@ -200,7 +201,7 @@ export class Manager {
             if (isReply(last)) clearInherited(last);
         }
         this.pending = { id: uuid(), type, chat: this.chatIdentity, phase: 'collecting', locked: false, committed: null, target: null, swipeFrom: 0, anchor: null, round: 0, base: null, filterState: null,
-            activated: new Map(), injected: new Map(), capChosen: new Map(), tainted: false, stopped: false, ended: false, nested: 0, toolContinuation: false, cache: null };
+            activated: new Map(), injected: new Map(), capChosen: new Map(), capStageSeen: false, tainted: false, stopped: false, ended: false, nested: 0, toolContinuation: false, cache: null };
         this.touch();
     }
     /**
@@ -290,13 +291,16 @@ export class Manager {
         const settings = this.settings;
         if (!settings.enabled || (!settings.automatic && !(settings.capEnabled && !this.capWarning))) return;
         const ctx = this.context();
-        p.cache ??= this.adapter.prepare?.(ctx);
+        if (settings.automatic) p.cache ??= this.adapter.prepare?.(ctx);
         const stage = entries.map(e => this.capStages.get(e)).find(Boolean);
-        if (stage) this.lastCapSkipped = stage.skipped;
+        if (stage) {
+            p.capStageSeen = true;
+            this.lastCapSkipped = stage.skipped;
+        }
         for (const e of entries) {
             const capEligible = settings.capEnabled && !this.capWarning && this.capStages.has(e) && !e.constant && !e.vectorized && managed(settings,e.world,e.uid,false);
             if (capEligible) p.capChosen.set(entryKey(e.world,e.uid), [String(e.world),String(e.uid)]);
-            if (e.disable || !managed(settings, e.world, e.uid, Boolean(e.constant))) continue;
+            if (!settings.automatic || e.disable || !managed(settings, e.world, e.uid, Boolean(e.constant))) continue;
             const key = entryKey(e.world, e.uid);
             if (p.activated.has(key)) continue;
             p.activated.set(key, { world: e.world, uid: e.uid, position: e.position, rendered: this.adapter.render(e, ctx, p.cache ?? undefined) });
@@ -308,8 +312,9 @@ export class Manager {
         if (!p) return;
         p.locked = true;
         p.phase = 'sent';
-        if (this.settings.capEnabled && !p.capChosen.size) this.lastCapSkipped = null;
+        if (this.settings.capEnabled && !p.capStageSeen) this.lastCapSkipped = null;
         if (!p.anchor) return;
+        if (!this.settings.automatic) { this.evidenceWarning = ''; return; }
         const ctx = this.context();
         const text = promptText(prompt);
         let unconfirmed = 0;
